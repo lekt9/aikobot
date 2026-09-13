@@ -41,6 +41,12 @@ the root `@elizaos/ui` barrel. The authentication client and service are owned
 by `@elizaos/login`. The imported login source retains its original MIT notice
 in [`src/login/LICENSE`](src/login/LICENSE), included in the published UI artifact.
 
+Sensitive SDK adapters can bind `ElizaClient.rawRequest` to the client's current
+`boundAuthorityRevision`. Bound requests check that epoch immediately before
+transport dispatch and do not automatically retry or follow runtime cutover.
+The app client supplies the bearer and CSRF headers; adapters must not add a
+second Authorization header.
+
 ```tsx
 import { LoginProvider, LoginForm, useAuth, useLogin } from "@elizaos/ui";
 import type { LoginFormProps } from "@elizaos/ui";

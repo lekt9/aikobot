@@ -97,7 +97,7 @@
     "audit:dead-code": "knip --config knip.json --include files,dependencies,unlisted,unresolved --max-issues 0",
     "audit:public-api:test": "node --test scripts/public-api-explicit-subpaths.test.mjs",
     "audit:public-api": "node --test scripts/public-api-explicit-subpaths.test.mjs",
-    "build:dist:unlocked": "bun run clean && node ../scripts/ensure-tsc-nested-output-dir.mjs packages/ui && tsc6 --noCheck -p tsconfig.build.json && node ../scripts/flatten-tsc-package-output.mjs packages/ui && node ../scripts/copy-package-assets.mjs packages/ui src/styles src/cloud-ui/index.css src/voice/worklets src/components/views/view-icons src/login/LICENSE && node ../scripts/prepare-package-dist.mjs packages/ui && node ../scripts/rewrite-dist-relative-imports-node-esm.mjs packages/ui && node ../scripts/verify-package-runtime-exports.mjs packages/ui",
+    "build:dist:unlocked": "bun run clean && node ../scripts/ensure-tsc-nested-output-dir.mjs packages/ui && tsc6 --noCheck -p tsconfig.build.json && node ../scripts/flatten-tsc-package-output.mjs packages/ui && node ../scripts/copy-package-assets.mjs packages/ui src/styles src/cloud-ui/index.css src/components/access/access.css src/voice/worklets src/components/views/view-icons src/login/LICENSE && node ../scripts/prepare-package-dist.mjs packages/ui && node ../scripts/rewrite-dist-relative-imports-node-esm.mjs packages/ui && node ../scripts/verify-package-runtime-exports.mjs packages/ui",
     "generate:view-icons": "node scripts/bake-view-icons.mjs",
     "test:orchestrator-accounts-e2e": "bun run --cwd ../.. packages/ui/src/components/chat/widgets/__e2e__/run-orchestrator-accounts-e2e.mjs",
     "test:wallet-widget-e2e": "bun run --cwd ../.. packages/ui/src/components/chat/widgets/__e2e__/run-wallet-widget-e2e.mjs",
@@ -260,6 +260,12 @@
       "import": "./dist/components/shared/index.js",
       "default": "./dist/components/shared/index.js"
     },
+    "./components/access": {
+      "types": "./dist/components/access/index.d.ts",
+      "import": "./dist/components/access/index.js",
+      "default": "./dist/components/access/index.js"
+    },
+    "./components/access/access.css": "./dist/components/access/access.css",
     "./components/*": {
       "types": "./dist/components/*.d.ts",
       "import": "./dist/components/*.js",
@@ -470,6 +476,7 @@
     "@elizaos/capacitor-secure-store": "workspace:*"
   },
   "dependencies": {
+    "access": "file:../../../access",
     "@babel/runtime": "^7.29.7",
     "@capacitor/core": "8.4.0",
     "@elizaos/cloud-sdk": "workspace:*",

@@ -722,8 +722,8 @@ function setEscalationCursor(
 const MAX_DISPATCH_RETRIES_PER_STEP = 3;
 
 /**
- * Continuation marker for a dispatch that failed with a typed
- * `DispatchResult { ok: false }`. `stepIndex` is the escalation-ladder step
+ * Continuation marker for a gate-deferred event or a dispatch that failed
+ * with a typed `DispatchResult { ok: false }`. `stepIndex` is the escalation-ladder step
  * the NEXT fire attempt must dispatch through (`-1` = the initial/default
  * channel), `attempt` counts retries already burned on that step.
  * Persisted in `metadata.pendingDispatch`; cleared on successful dispatch
@@ -2249,6 +2249,15 @@ export function createScheduledTaskRunner(
         clearEscalationCursor(task);
         clearPendingDispatch(task);
       }
+      if (hasEventPayload) {
+        // The scheduler wakes this row without the original event arguments.
+        // Keep the validated evidence in its existing durable continuation,
+        // preserving a connector retry's step and attempt across gate delays.
+        setPendingDispatch(task, {
+          ...(readPendingDispatch(task) ?? { stepIndex: -1, attempt: 0 }),
+          eventPayload,
+        });
+      }
       task.state.firedAt = new Date(newFireMs).toISOString();
       await persist(task);
       await logger.log(task.taskId, "snoozed", {
@@ -2314,11 +2323,12 @@ export function createScheduledTaskRunner(
       });
     }
     claimed.state.lastDecisionLog = "fired";
-    // A pending continuation (retry / ladder advance from a previous typed
-    // dispatch failure) routes this attempt through its recorded ladder
-    // step; a fresh fire starts at the initial channel (cursor -1).
+    // A pending continuation retains event evidence across gate delays and
+    // routes connector retries through their recorded ladder step.
     const pending = readPendingDispatch(claimed);
-    if (!pending && !recoveryClaim) {
+    const initialDispatch =
+      !pending || (pending.stepIndex === -1 && pending.attempt === 0);
+    if (initialDispatch && !recoveryClaim) {
       // A fresh occurrence owns a new durable dispatch identity. Persist it
       // before rendering/provider egress so retries and crash recovery reuse
       // the same connector dedupe key and exact prepared payload. Never trust

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 3,
   "sourceAtomicSchemaVersion": 1,
-  "scannedFiles": 912,
+  "scannedFiles": 916,
   "canonicalContracts": [
     {
       "id": "auth-result-shell",
@@ -108,8 +108,248 @@
       "maintainedReferences": 2
     }
   ],
-  "eligibleComponents": 103,
+  "eligibleComponents": 105,
   "clusters": [
+    {
+      "archetype": "dialog",
+      "atomicDependencies": [
+        "button",
+        "dialog"
+      ],
+      "entries": [
+        {
+          "atomicDependencies": [
+            "button",
+            "dialog"
+          ],
+          "file": "packages/ui/src/components/access/apps-drawer.tsx",
+          "line": 92,
+          "name": "AppsDrawer",
+          "renderedTags": [
+            "AccountDetail",
+            "AddApp",
+            "AppIcon",
+            "Button",
+            "Dialog",
+            "DialogContent",
+            "DialogDescription",
+            "DialogTitle",
+            "div",
+            "h1",
+            "h2",
+            "h3",
+            "header",
+            "p",
+            "section",
+            "span"
+          ],
+          "archetype": "dialog"
+        },
+        {
+          "atomicDependencies": [
+            "button",
+            "dialog"
+          ],
+          "file": "packages/ui/src/components/pages/skill-detail-panel.tsx",
+          "line": 35,
+          "name": "EditSkillModal",
+          "renderedTags": [
+            "AdminCodeEditor",
+            "AdminDialogContent",
+            "AdminDialogHeader",
+            "AdminMonoMeta",
+            "Button",
+            "Dialog",
+            "DialogDescription",
+            "DialogTitle",
+            "div",
+            "span"
+          ],
+          "archetype": "dialog"
+        },
+        {
+          "atomicDependencies": [
+            "button",
+            "dialog"
+          ],
+          "file": "packages/ui/src/components/ui/confirm-dialog.tsx",
+          "line": 35,
+          "name": "ConfirmDialog",
+          "renderedTags": [
+            "Button",
+            "Dialog",
+            "DialogContent",
+            "DialogDescription",
+            "DialogFooter",
+            "DialogHeader",
+            "DialogTitle"
+          ],
+          "archetype": "dialog"
+        },
+        {
+          "atomicDependencies": [
+            "button",
+            "dialog"
+          ],
+          "file": "plugins/plugin-calendar/src/components/EventEditorDrawer.tsx",
+          "line": 469,
+          "name": "EventEditorDrawer",
+          "renderedTags": [
+            "Button",
+            "Check",
+            "ConfirmDialog",
+            "Dialog",
+            "DialogContent",
+            "EventEditorActionButton",
+            "EventEditorCalendarSelect",
+            "EventEditorInput",
+            "EventEditorNotes",
+            "Loader2",
+            "MessageSquare",
+            "Plus",
+            "Save",
+            "TagEditor",
+            "Trash2",
+            "X",
+            "div",
+            "label",
+            "p",
+            "span"
+          ],
+          "archetype": "dialog"
+        }
+      ],
+      "signature": "dialog:button+dialog",
+      "disposition": "distinct-domain-compositions",
+      "rationale": "Skill editing, generic confirmation, calendar editing, and the Access account drawer own different pending, validation, and completion contracts. The Access drawer selects an account, reads remote connection projections, and contains private credential and permission steps; it cannot share an editing or confirmation lifecycle. All four reuse the canonical Dialog and Button primitives.",
+      "memberComponentIds": [
+        "packages/ui/src/components/access/apps-drawer.tsx:AppsDrawer",
+        "packages/ui/src/components/pages/skill-detail-panel.tsx:EditSkillModal",
+        "packages/ui/src/components/ui/confirm-dialog.tsx:ConfirmDialog",
+        "plugins/plugin-calendar/src/components/EventEditorDrawer.tsx:EventEditorDrawer"
+      ],
+      "semanticFingerprint": "sha256:ab87fba72eb4590ed399831949a76661358a5f10f8d365737fcfaac50864ecc5"
+    },
+    {
+      "archetype": "form",
+      "atomicDependencies": [
+        "button",
+        "input"
+      ],
+      "entries": [
+        {
+          "atomicDependencies": [
+            "button",
+            "input"
+          ],
+          "file": "packages/ui/src/components/access/credential-form.tsx",
+          "line": 101,
+          "name": "CredentialForm",
+          "renderedTags": [
+            "Button",
+            "Input",
+            "Label",
+            "div",
+            "form",
+            "h3",
+            "p",
+            "small",
+            "span"
+          ],
+          "archetype": "form"
+        },
+        {
+          "atomicDependencies": [
+            "button",
+            "input"
+          ],
+          "file": "packages/ui/src/components/pages/TriggerForm.tsx",
+          "line": 231,
+          "name": "TriggerForm",
+          "renderedTags": [
+            "AgentSelectField",
+            "Button",
+            "CronInputSection",
+            "DurationValueInput",
+            "EventInputSection",
+            "FieldLabel",
+            "FieldSwitch",
+            "FormSelect",
+            "FormSelectItem",
+            "Input",
+            "IntervalHostWarningBanner",
+            "PagePanel",
+            "PagePanel.Notice",
+            "SchedulePreview",
+            "ScheduledAtInput",
+            "TriggerKindSection",
+            "TriggerRunHistory",
+            "div",
+            "h2"
+          ],
+          "archetype": "form"
+        },
+        {
+          "atomicDependencies": [
+            "button",
+            "input"
+          ],
+          "file": "packages/ui/src/components/ui/tag-editor.tsx",
+          "line": 29,
+          "name": "TagEditor",
+          "renderedTags": [
+            "Button",
+            "Input",
+            "Label",
+            "X",
+            "div",
+            "span"
+          ],
+          "archetype": "form"
+        },
+        {
+          "atomicDependencies": [
+            "button",
+            "input"
+          ],
+          "file": "packages/ui/src/login/components/LoginForm.tsx",
+          "line": 180,
+          "name": "LoginForm",
+          "renderedTags": [
+            "Button",
+            "DiscordIcon",
+            "EVMPanel",
+            "EmailIcon",
+            "EthereumIcon",
+            "FarcasterIcon",
+            "GitHubIcon",
+            "GoogleIcon",
+            "Input",
+            "PasskeyIcon",
+            "SolanaPanel",
+            "TelegramIcon",
+            "XIcon",
+            "code",
+            "div",
+            "h2",
+            "p",
+            "span",
+            "strong"
+          ],
+          "archetype": "form"
+        }
+      ],
+      "signature": "form:button+input",
+      "disposition": "distinct-domain-compositions",
+      "rationale": "Trigger configuration edits scheduling state, tag editing emits strings, and application login discovers providers and creates the app session. The Access credential form instead validates a generated website-specific schema, binds vault references to the selected account, expires transient inputs, and submits privately before native task continuation. These lifecycles remain distinct while reusing the canonical Button and Input primitives.",
+      "memberComponentIds": [
+        "packages/ui/src/components/access/credential-form.tsx:CredentialForm",
+        "packages/ui/src/components/pages/TriggerForm.tsx:TriggerForm",
+        "packages/ui/src/components/ui/tag-editor.tsx:TagEditor",
+        "packages/ui/src/login/components/LoginForm.tsx:LoginForm"
+      ],
+      "semanticFingerprint": "sha256:092912c5cc6d260ffb16e600089f0042a043651796150a0e3a8f520f8ac72573"
+    },
     {
       "archetype": "row",
       "atomicDependencies": [
@@ -196,97 +436,6 @@
         "plugins/plugin-task-coordinator/src/orchestrator-reasoning.tsx:ReasoningCell"
       ],
       "semanticFingerprint": "sha256:982159e726ae366cad541734d281ae30c74bbff4c06577ae8203a7786d25581c"
-    },
-    {
-      "archetype": "dialog",
-      "atomicDependencies": [
-        "button",
-        "dialog"
-      ],
-      "entries": [
-        {
-          "atomicDependencies": [
-            "button",
-            "dialog"
-          ],
-          "file": "packages/ui/src/components/pages/skill-detail-panel.tsx",
-          "line": 35,
-          "name": "EditSkillModal",
-          "renderedTags": [
-            "AdminCodeEditor",
-            "AdminDialogContent",
-            "AdminDialogHeader",
-            "AdminMonoMeta",
-            "Button",
-            "Dialog",
-            "DialogDescription",
-            "DialogTitle",
-            "div",
-            "span"
-          ],
-          "archetype": "dialog"
-        },
-        {
-          "atomicDependencies": [
-            "button",
-            "dialog"
-          ],
-          "file": "packages/ui/src/components/ui/confirm-dialog.tsx",
-          "line": 35,
-          "name": "ConfirmDialog",
-          "renderedTags": [
-            "Button",
-            "Dialog",
-            "DialogContent",
-            "DialogDescription",
-            "DialogFooter",
-            "DialogHeader",
-            "DialogTitle"
-          ],
-          "archetype": "dialog"
-        },
-        {
-          "atomicDependencies": [
-            "button",
-            "dialog"
-          ],
-          "file": "plugins/plugin-calendar/src/components/EventEditorDrawer.tsx",
-          "line": 469,
-          "name": "EventEditorDrawer",
-          "renderedTags": [
-            "Button",
-            "Check",
-            "ConfirmDialog",
-            "Dialog",
-            "DialogContent",
-            "EventEditorActionButton",
-            "EventEditorCalendarSelect",
-            "EventEditorInput",
-            "EventEditorNotes",
-            "Loader2",
-            "MessageSquare",
-            "Plus",
-            "Save",
-            "TagEditor",
-            "Trash2",
-            "X",
-            "div",
-            "label",
-            "p",
-            "span"
-          ],
-          "archetype": "dialog"
-        }
-      ],
-      "signature": "dialog:button+dialog",
-      "disposition": "distinct-domain-compositions",
-      "rationale": "The three dialogs own unrelated editing, confirmation, and calendar workflows.",
-      "memberComponentIds": [
-        "packages/ui/src/components/pages/skill-detail-panel.tsx:EditSkillModal",
-        "packages/ui/src/components/ui/confirm-dialog.tsx:ConfirmDialog",
-        "plugins/plugin-calendar/src/components/EventEditorDrawer.tsx:EventEditorDrawer"
-      ],
-      "semanticFingerprint": "sha256:7d8e1352a677365c5ff593aa06cecc62fb6ad5b2b4b7f2d6aa195a563c33c0db"
     },
     {
       "archetype": "dialog",
@@ -379,104 +528,6 @@
         "packages/ui/src/components/ui/confirm-dialog.tsx:PromptDialog"
       ],
       "semanticFingerprint": "sha256:baf8c850cab849f7ceb04e8ad6ff718d448b16337368fe64e9786a51414a8fa5"
-    },
-    {
-      "archetype": "form",
-      "atomicDependencies": [
-        "button",
-        "input"
-      ],
-      "entries": [
-        {
-          "atomicDependencies": [
-            "button",
-            "input"
-          ],
-          "file": "packages/ui/src/components/pages/TriggerForm.tsx",
-          "line": 231,
-          "name": "TriggerForm",
-          "renderedTags": [
-            "AgentSelectField",
-            "Button",
-            "CronInputSection",
-            "DurationValueInput",
-            "EventInputSection",
-            "FieldLabel",
-            "FieldSwitch",
-            "FormSelect",
-            "FormSelectItem",
-            "Input",
-            "IntervalHostWarningBanner",
-            "PagePanel",
-            "PagePanel.Notice",
-            "SchedulePreview",
-            "ScheduledAtInput",
-            "TriggerKindSection",
-            "TriggerRunHistory",
-            "div",
-            "h2"
-          ],
-          "archetype": "form"
-        },
-        {
-          "atomicDependencies": [
-            "button",
-            "input"
-          ],
-          "file": "packages/ui/src/components/ui/tag-editor.tsx",
-          "line": 29,
-          "name": "TagEditor",
-          "renderedTags": [
-            "Button",
-            "Input",
-            "Label",
-            "X",
-            "div",
-            "span"
-          ],
-          "archetype": "form"
-        },
-        {
-          "atomicDependencies": [
-            "button",
-            "input"
-          ],
-          "file": "packages/ui/src/login/components/LoginForm.tsx",
-          "line": 180,
-          "name": "LoginForm",
-          "renderedTags": [
-            "Button",
-            "DiscordIcon",
-            "EVMPanel",
-            "EmailIcon",
-            "EthereumIcon",
-            "FarcasterIcon",
-            "GitHubIcon",
-            "GoogleIcon",
-            "Input",
-            "PasskeyIcon",
-            "SolanaPanel",
-            "TelegramIcon",
-            "XIcon",
-            "code",
-            "div",
-            "h2",
-            "p",
-            "span",
-            "strong"
-          ],
-          "archetype": "form"
-        }
-      ],
-      "signature": "form:button+input",
-      "disposition": "distinct-domain-compositions",
-      "rationale": "Trigger configuration, tag editing and login share generic controls but not a domain lifecycle. Login performs provider discovery, credential challenges and session handoff; trigger configuration edits scheduling state; tag editing emits a list of strings. Each composes the canonical Button and Input primitives.",
-      "memberComponentIds": [
-        "packages/ui/src/components/pages/TriggerForm.tsx:TriggerForm",
-        "packages/ui/src/components/ui/tag-editor.tsx:TagEditor",
-        "packages/ui/src/login/components/LoginForm.tsx:LoginForm"
-      ],
-      "semanticFingerprint": "sha256:fcf873875a506f36121cec3f220e955971468c53d28e938874b7b2890cdeccf6"
     },
     {
       "archetype": "list",
@@ -1112,7 +1163,7 @@
   ],
   "summary": {
     "clusterCount": 12,
-    "clusteredComponents": 31,
+    "clusteredComponents": 33,
     "largestCluster": 4
   }
 }

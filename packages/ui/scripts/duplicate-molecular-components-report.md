@@ -1,6 +1,6 @@
 # Molecular component duplicate inventory
 
-Scanned 912 maintained React files. 103 exported compositions have a recognized molecular role and at least two atomic dependencies.
+Scanned 916 maintained React files. 105 exported compositions have a recognized molecular role and at least two atomic dependencies.
 
 Clusters share both a role and an atomic dependency signature. Detection creates a review queue; this committed report contains only final dispositions based on product behavior, state ownership, and responsive layout.
 
@@ -20,10 +20,10 @@ These owners are fail-closed contracts. The audit fails if an owner disappears, 
 
 | Role | Atomic dependencies | Components | Decision |
 | --- | --- | ---: | --- |
+| dialog | button, dialog | 4 | distinct-domain-compositions |
+| form | button, input | 4 | distinct-domain-compositions |
 | row | button, card | 4 | distinct-domain-compositions |
-| dialog | button, dialog | 3 | distinct-domain-compositions |
 | dialog | button, dialog, input | 3 | distinct-domain-compositions |
-| form | button, input | 3 | distinct-domain-compositions |
 | list | badge, button, card | 3 | distinct-domain-compositions |
 | panel | button, card, input | 3 | distinct-domain-compositions |
 | card | badge, button, card, checkbox, dialog, spinner | 2 | distinct-domain-compositions |
@@ -35,6 +35,24 @@ These owners are fail-closed contracts. The audit fails if an owner disappears, 
 
 ## Reviewed clusters
 
+### dialog: button + dialog
+
+- `AppsDrawer` in `packages/ui/src/components/access/apps-drawer.tsx:92`
+- `EditSkillModal` in `packages/ui/src/components/pages/skill-detail-panel.tsx:35`
+- `ConfirmDialog` in `packages/ui/src/components/ui/confirm-dialog.tsx:35`
+- `EventEditorDrawer` in `plugins/plugin-calendar/src/components/EventEditorDrawer.tsx:469`
+- Fingerprint: `sha256:ab87fba72eb4590ed399831949a76661358a5f10f8d365737fcfaac50864ecc5`
+- Decision: **distinct-domain-compositions**. Skill editing, generic confirmation, calendar editing, and the Access account drawer own different pending, validation, and completion contracts. The Access drawer selects an account, reads remote connection projections, and contains private credential and permission steps; it cannot share an editing or confirmation lifecycle. All four reuse the canonical Dialog and Button primitives.
+
+### form: button + input
+
+- `CredentialForm` in `packages/ui/src/components/access/credential-form.tsx:101`
+- `TriggerForm` in `packages/ui/src/components/pages/TriggerForm.tsx:231`
+- `TagEditor` in `packages/ui/src/components/ui/tag-editor.tsx:29`
+- `LoginForm` in `packages/ui/src/login/components/LoginForm.tsx:180`
+- Fingerprint: `sha256:092912c5cc6d260ffb16e600089f0042a043651796150a0e3a8f520f8ac72573`
+- Decision: **distinct-domain-compositions**. Trigger configuration edits scheduling state, tag editing emits strings, and application login discovers providers and creates the app session. The Access credential form instead validates a generated website-specific schema, binds vault references to the selected account, expires transient inputs, and submits privately before native task continuation. These lifecycles remain distinct while reusing the canonical Button and Input primitives.
+
 ### row: button + card
 
 - `SidebarItem` in `packages/ui/src/components/composites/sidebar/sidebar-content.tsx:174`
@@ -44,14 +62,6 @@ These owners are fail-closed contracts. The audit fails if an owner disappears, 
 - Fingerprint: `sha256:982159e726ae366cad541734d281ae30c74bbff4c06577ae8203a7786d25581c`
 - Decision: **distinct-domain-compositions**. Sidebar and settings rows share atomic controls but own different selection, status, and lifecycle contracts.
 
-### dialog: button + dialog
-
-- `EditSkillModal` in `packages/ui/src/components/pages/skill-detail-panel.tsx:35`
-- `ConfirmDialog` in `packages/ui/src/components/ui/confirm-dialog.tsx:35`
-- `EventEditorDrawer` in `plugins/plugin-calendar/src/components/EventEditorDrawer.tsx:469`
-- Fingerprint: `sha256:7d8e1352a677365c5ff593aa06cecc62fb6ad5b2b4b7f2d6aa195a563c33c0db`
-- Decision: **distinct-domain-compositions**. The three dialogs own unrelated editing, confirmation, and calendar workflows.
-
 ### dialog: button + dialog + input
 
 - `SaveCommandModal` in `packages/ui/src/components/chat/SaveCommandModal.tsx:37`
@@ -59,14 +69,6 @@ These owners are fail-closed contracts. The audit fails if an owner disappears, 
 - `PromptDialog` in `packages/ui/src/components/ui/confirm-dialog.tsx:95`
 - Fingerprint: `sha256:baf8c850cab849f7ceb04e8ad6ff718d448b16337368fe64e9786a51414a8fa5`
 - Decision: **distinct-domain-compositions**. Command persistence, conversation renaming, and generic prompting have different validation, pending, error, and result contracts. Their stable shared behavior already belongs to Dialog, Input, and Button.
-
-### form: button + input
-
-- `TriggerForm` in `packages/ui/src/components/pages/TriggerForm.tsx:231`
-- `TagEditor` in `packages/ui/src/components/ui/tag-editor.tsx:29`
-- `LoginForm` in `packages/ui/src/login/components/LoginForm.tsx:180`
-- Fingerprint: `sha256:fcf873875a506f36121cec3f220e955971468c53d28e938874b7b2890cdeccf6`
-- Decision: **distinct-domain-compositions**. Trigger configuration, tag editing and login share generic controls but not a domain lifecycle. Login performs provider discovery, credential challenges and session handoff; trigger configuration edits scheduling state; tag editing emits a list of strings. Each composes the canonical Button and Input primitives.
 
 ### list: badge + button + card
 

@@ -8,6 +8,7 @@ import type {
   EntityPayload,
   EventPayload,
   MessagePayload,
+  UUID,
   WorldPayload,
 } from "@elizaos/core";
 import type { Chat, Message, ReactionType } from "@telegraf/types";
@@ -37,6 +38,7 @@ export type Button = {
  * Telegram-specific event types
  */
 export enum TelegramEventTypes {
+  USER_ACTIVITY = "TELEGRAM_USER_ACTIVITY",
   // World events
   WORLD_JOINED = "TELEGRAM_WORLD_JOINED",
   WORLD_CONNECTED = "TELEGRAM_WORLD_CONNECTED",
@@ -63,6 +65,7 @@ export enum TelegramEventTypes {
  * Telegram-specific event payload map
  */
 export interface TelegramEventPayloadMap {
+  [TelegramEventTypes.USER_ACTIVITY]: TelegramUserActivityPayload;
   [TelegramEventTypes.MESSAGE_RECEIVED]: TelegramMessageReceivedPayload;
   [TelegramEventTypes.MESSAGE_SENT]: TelegramMessageSentPayload;
   [TelegramEventTypes.REACTION_RECEIVED]: TelegramReactionReceivedPayload;
@@ -82,6 +85,12 @@ declare module "@elizaos/core" {
 
 export interface TelegramSlashStartPayload extends EventPayload {
   ctx: Context;
+}
+
+/** Identity-only signal from a verified private Telegram update; it grants no chat or administrator permissions. */
+export interface TelegramUserActivityPayload extends EventPayload {
+  entityId: UUID;
+  accountId: string;
 }
 
 /**

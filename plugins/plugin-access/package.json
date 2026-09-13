@@ -1,0 +1,43 @@
+{
+  "name": "@elizaos/plugin-access",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Owner-scoped Access SDK integration for proactive elizaOS agents.",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "eliza-source": "./src/index.ts",
+      "bun": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "test": "bun run scripts/verify.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "lint": "bunx @biomejs/biome check --write src tests scripts build.ts vitest.config.ts",
+    "format": "bunx @biomejs/biome format --write src tests scripts build.ts vitest.config.ts",
+    "build": "bun run build.ts",
+    "lint:check": "bunx @biomejs/biome check src tests scripts build.ts vitest.config.ts",
+    "format:check": "bunx @biomejs/biome format src tests scripts build.ts vitest.config.ts"
+  },
+  "dependencies": {
+    "@elizaos/core": "workspace:*",
+    "@elizaos/plugin-scheduling": "workspace:*",
+    "access": "file:../../../access",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.8",
+    "@types/node": "^25.0.6",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.10"
+  },
+  "elizaos": {
+    "plugin": {
+      "autoEnableModule": "./dist/auto-enable.js"
+    }
+  }
+}

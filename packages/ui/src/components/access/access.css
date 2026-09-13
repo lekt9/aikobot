@@ -1,0 +1,379 @@
+/** Styles the Apps drawer and its isolated sign-in sheets across Telegram themes. */
+.access-apps,
+.access-sheet {
+  --access-paper: var(--tg-theme-bg-color, var(--bg, #ffffff));
+  --access-ink: var(--tg-theme-text-color, var(--txt, #24262b));
+  --access-muted: var(--muted-strong, #626570);
+  --access-line: var(--border, #d8dae0);
+  --access-orange: #e96922;
+  --access-orange-hover: #b64b13;
+  color: var(--access-ink);
+  background: var(--access-paper);
+  font-family: var(
+    --font-sans,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif
+  );
+  line-height: 1.5;
+}
+.access-apps {
+  width: 100%;
+  max-width: 58rem;
+  min-height: 100%;
+  margin: 0 auto;
+  padding: max(
+      1.5rem,
+      var(--tg-content-safe-area-inset-top, 0px),
+      env(safe-area-inset-top)
+    )
+    max(
+      1.25rem,
+      var(--tg-content-safe-area-inset-right, 0px),
+      env(safe-area-inset-right)
+    )
+    max(
+      2rem,
+      var(--tg-content-safe-area-inset-bottom, 0px),
+      env(safe-area-inset-bottom)
+    )
+    max(
+      1.25rem,
+      var(--tg-content-safe-area-inset-left, 0px),
+      env(safe-area-inset-left)
+    );
+}
+.access-apps h1 {
+  margin: 0.3rem 0 0.6rem;
+  font-family: var(--font-display, "Avenir Next", "Segoe UI", sans-serif);
+  font-size: clamp(2.25rem, 6vw, 3.5rem);
+  font-weight: 700;
+  letter-spacing: -0.055em;
+  line-height: 1.08;
+}
+.access-apps h2,
+.access-apps h3,
+.access-sheet h3 {
+  font-weight: 650;
+  margin: 0;
+}
+.access-apps h2 {
+  font-size: 1rem;
+}
+.access-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem 0 2.75rem;
+}
+.access-eyebrow {
+  color: var(--access-muted);
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.6875rem;
+  letter-spacing: 0.12em;
+}
+.access-muted,
+.access-vault-note {
+  color: var(--access-muted);
+  font-size: 0.875rem;
+}
+.access-drawer-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--access-line);
+  padding-bottom: 0.75rem;
+}
+.access-app-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr));
+  gap: 1.25rem 1rem;
+}
+.access-apps .access-app-tile {
+  display: flex;
+  flex-direction: column;
+  height: auto;
+  min-height: 11rem;
+  padding: 1rem 0.5rem;
+  border-radius: 1.5rem;
+  border-color: transparent;
+  background: transparent;
+  color: var(--access-ink);
+  white-space: normal;
+  text-align: center;
+  gap: 0.6rem;
+}
+.access-apps .access-app-tile:hover {
+  border-color: var(--access-line);
+  background: var(--bg-hover, #f1f2f5);
+}
+.access-app-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 4.5rem;
+  height: 4.5rem;
+  border: 1px solid var(--access-line);
+  border-radius: 1.4rem;
+  background: var(--card, #f6f7f9);
+  color: var(--access-ink);
+  box-shadow: 0 3px 0 var(--access-line);
+  font-size: 2rem;
+  font-weight: 400;
+}
+.access-app-icon img {
+  width: 2.25rem;
+  height: 2.25rem;
+  object-fit: contain;
+}
+.access-add-tile .access-app-icon {
+  color: var(--access-orange-hover);
+  border-style: dashed;
+  box-shadow: none;
+  background: transparent;
+}
+.access-app-name {
+  overflow-wrap: anywhere;
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+.access-tile-status {
+  color: var(--access-muted);
+  font-size: 0.6875rem;
+  font-weight: 400;
+}
+.access-empty {
+  padding: 2.75rem 0.5rem;
+  text-align: center;
+  max-width: 28rem;
+  margin: 0 auto;
+}
+.access-empty p {
+  color: var(--access-muted);
+  margin-top: 0.5rem;
+}
+.access-vault-note {
+  border-top: 1px solid var(--access-line);
+  margin-top: 3rem;
+  padding-top: 1rem;
+  text-align: center;
+  font-size: 0.75rem;
+}
+.access-sheet {
+  border-radius: 1.5rem;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding-bottom: max(
+    1.5rem,
+    var(--tg-content-safe-area-inset-bottom, 0px),
+    env(safe-area-inset-bottom)
+  );
+}
+.access-apps button,
+.access-sheet button,
+.access-sheet a {
+  min-height: 2.75rem;
+}
+.access-apps button:focus-visible,
+.access-sheet button:focus-visible,
+.access-sheet input:focus-visible,
+.access-sheet a:focus-visible {
+  outline: 3px solid var(--access-orange);
+  outline-offset: 3px;
+}
+.access-sheet .access-primary {
+  background: var(--access-orange);
+  color: #24170d;
+}
+.access-sheet .access-primary:hover {
+  background: var(--access-orange-hover);
+  color: #ffffff;
+}
+.access-sheet .access-primary:disabled {
+  background: #edaa84;
+  color: #24170d;
+}
+.access-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+.access-form,
+.access-credential-form,
+.access-detail {
+  display: grid;
+  gap: 1.25rem;
+}
+.access-field {
+  display: grid;
+  gap: 0.5rem;
+}
+.access-sheet input {
+  font-size: 1rem;
+  min-height: 3rem;
+  border-radius: 0.75rem;
+  background: var(--access-paper);
+  color: var(--access-ink);
+}
+.access-credential-form {
+  padding: 1.25rem;
+  border: 1px solid var(--access-line);
+  border-left: 3px solid var(--access-orange);
+  border-radius: 0.75rem;
+}
+.access-section-heading {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+.access-section-heading > span {
+  color: var(--access-orange-hover);
+  font-size: 1.5rem;
+}
+.access-connection-banner {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+.access-site {
+  font-size: 0.875rem;
+  overflow-wrap: anywhere;
+}
+.access-status {
+  font-weight: 600;
+  margin-top: 0.25rem;
+}
+.access-status[data-connected="true"]::before {
+  content: "●";
+  color: #38764c;
+  margin-right: 0.4rem;
+}
+.access-callout {
+  display: grid;
+  gap: 0.8rem;
+  padding: 1.25rem;
+  border: 1px solid var(--access-line);
+  border-radius: 0.75rem;
+}
+.access-preserve-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.access-activity ul {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 0;
+}
+.access-activity li {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--access-line);
+  padding: 0.75rem 0;
+  font-size: 0.8125rem;
+}
+.access-activity li > span:last-child {
+  color: var(--access-muted);
+}
+.access-remove {
+  border-top: 1px solid var(--access-line);
+  padding-top: 1.25rem;
+  display: grid;
+  gap: 1rem;
+}
+.access-browser .access-browser-screen {
+  display: block;
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  padding: 0;
+  border: 1px solid var(--access-orange);
+  border-radius: 0.75rem;
+  overflow: hidden;
+  cursor: crosshair;
+}
+.access-browser-screen img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.access-browser-screen:focus-visible {
+  outline: 3px solid var(--access-orange);
+  outline-offset: 3px;
+}
+.access-browser-controls {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.access-apps [role="alert"],
+.access-sheet [role="alert"] {
+  padding: 0.75rem 1rem;
+  border-left: 3px solid var(--access-orange);
+  border-radius: 0.25rem;
+  color: var(--access-ink);
+  background: var(--bg-hover, #f1f2f5);
+}
+@media (max-width: 480px) {
+  .access-header {
+    flex-direction: column;
+    padding-bottom: 2rem;
+  }
+  .access-app-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+  .access-apps .access-app-tile {
+    min-height: 9.75rem;
+    padding: 0.75rem 0.2rem;
+  }
+  .access-app-icon {
+    width: 3.75rem;
+    height: 3.75rem;
+    border-radius: 1.15rem;
+  }
+  .access-app-name {
+    font-size: 0.8125rem;
+  }
+  .access-sheet {
+    border-radius: 1.5rem 1.5rem 0.75rem 0.75rem;
+  }
+  .access-credential-form {
+    padding: 1rem;
+  }
+  .access-actions > button {
+    flex-grow: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .access-apps *,
+  .access-sheet * {
+    transition: none;
+    animation: none;
+  }
+}
+
+.access-browser-help {
+  color: var(--access-muted);
+  font-size: 0.8125rem;
+}
+.access-browser .access-browser-screen:disabled {
+  opacity: 1;
+  cursor: wait;
+}
+.access-browser-controls {
+  gap: 0.5rem;
+}
+.access-browser-controls .access-primary {
+  width: 100%;
+  margin-top: 0.5rem;
+}

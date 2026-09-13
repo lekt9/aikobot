@@ -38,6 +38,7 @@ function makePairingRuntime(
       options.pairingService === false ? null : pairingService,
     ),
     reportError: vi.fn(),
+    emitEvent: vi.fn(async () => undefined),
     logger: { warn: vi.fn() },
   } as unknown as IAgentRuntime;
   return { runtime, pairingService };
@@ -187,7 +188,7 @@ describe("TelegramService authorization middleware DM gate", () => {
     const middleware = (
       service as unknown as { authorizationMiddleware: Middleware }
     ).authorizationMiddleware.bind(service);
-    return { middleware, pairingService };
+    return { middleware, pairingService, runtime };
   }
 
   function dmContext(reply = vi.fn(async () => ({}))) {
@@ -197,6 +198,25 @@ describe("TelegramService authorization middleware DM gate", () => {
       reply,
     };
   }
+
+  it.each(["/start", "hello Aiko"])(
+    "publishes private sender activity for %s without granting chat access",
+    async (text) => {
+      const { middleware, runtime } = makeService({});
+      const next = vi.fn(async () => undefined);
+      await middleware({ ...dmContext(), message: { text } }, next);
+      expect(runtime.emitEvent).toHaveBeenCalledWith(
+        "TELEGRAM_USER_ACTIVITY",
+        expect.objectContaining({
+          runtime,
+          source: "telegram",
+          accountId: "default",
+          entityId: expect.any(String),
+        }),
+      );
+      expect(next).not.toHaveBeenCalled();
+    },
+  );
 
   it("denies an unconfigured DM by default and replies with the pairing code", async () => {
     const { middleware } = makeService({});

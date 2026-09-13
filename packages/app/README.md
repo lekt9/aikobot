@@ -39,6 +39,30 @@ build, preview, and deployment lifecycle.
 
 ## Commands
 
+### Aiko connected apps
+
+The app registers `/apps/access` for the connected-app drawer. The Telegram
+entry is `/embed/apps`: it loads Telegram's official Web App SDK, exchanges
+signed launch data through the existing embed authentication endpoint, and
+mounts the drawer with that authenticated app session. Set the Telegram
+connector's `TELEGRAM_EMBED_URL` (or `ELIZA_EMBED_URL`) to the public HTTPS URL
+ending in `/embed/apps`. A failed launch does not reuse another signed-in
+account. Owner or server changes unmount private form and browser state.
+
+Configure server-side `ACCESS_REMOTE_URL` and `ACCESS_OWNER_TOKEN_SECRET` and
+load the [Access plugin](../../plugins/plugin-access/README.md) with the
+scheduling and personal-assistant plugins. The remote Access host verifies
+short-lived owner tokens; these settings must never use a `VITE_` prefix.
+Website passwords and verification codes go through dedicated credential
+requests rather than chat. The drawer displays generated credential forms,
+connection progress, effect approvals and the account's private browser controls.
+
+Website events update committed context before watcher evaluation. Foreground
+drawer refreshes only display those updates; core TaskService and the existing
+scheduled-task runner own background work and Telegram delivery.
+
+### Development
+
 Run from the repo root with `--cwd packages/app`, or from inside the package directly.
 
 ```bash

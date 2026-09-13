@@ -1,26 +1,38 @@
 /**
  * Tests for the `/embed` bootstrap handshake (`isEmbedPath` + `runEmbedHandshake`)
  * that authenticates Telegram Mini App / Discord Activity embeds: it detects the
- * platform (explicit `?platform=` or auto-detected from injected Telegram
+ * platform (explicit `?platform=` or auto-detected from SDK-provided Telegram
  * initData or a Discord `?code=` redirect), POSTs the signed launch payload to
- * `<base>/api/embed/auth`, and installs the returned token on the client. The
- * client, fetch, and window are injected fakes; the suite drives the real
- * handshake and asserts it fails closed (no token installed) on unknown
+ * `<base>/api/embed/auth`, and installs the returned token on the client.
+ * The suite drives the real handshake and pinned ElizaClient setter, with
+ * deterministic fetch/window boundaries. It asserts failure on unknown
  * platform, missing payload/OAuth state, non-2xx responses, token-less bodies,
  * network errors, and timeouts.
  */
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { ElizaClient } from "../../ui/src/api/client-base";
+import { savePersistedActiveServer } from "../../ui/src/state/persistence";
 import {
   type EmbedClient,
   isEmbedPath,
   runEmbedHandshake,
-} from "./embed-bootstrap";
+} from "./embed-bootstrap.js";
 
 const BASE = "https://agent.example";
 
 function fakeClient() {
-  const setToken = vi.fn<(token: string | null) => void>();
-  const client: EmbedClient = { getBaseUrl: () => BASE, setToken };
+  let currentToken: string | null = null;
+  let revision = 0;
+  const setToken = vi.fn((token: string | null) => {
+    currentToken = token;
+    revision += 1;
+  });
+  const client: EmbedClient = {
+    getBaseUrl: () => BASE,
+    getRestAuthToken: () => currentToken,
+    getAuthorityRevision: () => revision,
+    setToken,
+  };
   return { client, setToken };
 }
 
@@ -62,6 +74,91 @@ describe("isEmbedPath", () => {
 });
 
 describe("runEmbedHandshake", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    localStorage.clear();
+  });
+
+  it("fails when a pinned real client rejects the exchanged owner's token", async () => {
+    vi.stubGlobal("__ELIZA_BUILD_CONFIGURED_REMOTE_API_BASE__", BASE);
+    savePersistedActiveServer({
+      id: "remote:embed-test",
+      kind: "remote",
+      label: "Embed test",
+      apiBase: BASE,
+      accessToken: "existing-owner-token",
+    });
+    const client = new ElizaClient(BASE, "existing-owner-token");
+    expect(client.getRestAuthToken()).toBe("existing-owner-token");
+    const outcome = await runEmbedHandshake({
+      win: fakeWin("/embed/apps", "?platform=telegram", "signed-launch"),
+      client,
+      fetchImpl: async () => Response.json({ token: "launch-owner-token" }),
+    });
+    expect(outcome).toEqual({
+      status: "failed",
+      reason: "token_not_installed",
+    });
+    expect(client.getRestAuthToken()).toBe("existing-owner-token");
+  });
+
+  it("fails when a client refuses token installation", async () => {
+    const { client, setToken } = fakeClient();
+    setToken.mockImplementation(() => undefined);
+    const outcome = await runEmbedHandshake({
+      win: fakeWin("/embed", "?platform=telegram", "signed-launch"),
+      client,
+      fetchImpl: async () => Response.json({ token: "launch-owner-token" }),
+    });
+    expect(outcome).toEqual({
+      status: "failed",
+      reason: "token_not_installed",
+    });
+  });
+
+  it("does not expose a token installation error as authentication success", async () => {
+    const { client, setToken } = fakeClient();
+    setToken.mockImplementation(() => {
+      throw new Error("private installation failure");
+    });
+    const outcome = await runEmbedHandshake({
+      win: fakeWin("/embed", "?platform=telegram", "signed-launch"),
+      client,
+      fetchImpl: async () => Response.json({ token: "launch-owner-token" }),
+    });
+    expect(outcome).toEqual({
+      status: "failed",
+      reason: "token_install_failed",
+    });
+  });
+
+  it.each(["owner", "server"])(
+    "does not install an old exchange token after a %s change while reading the response",
+    async (change) => {
+      const { client, setToken } = fakeClient();
+      let base = BASE;
+      client.getBaseUrl = () => base;
+      const outcome = await runEmbedHandshake({
+        win: fakeWin("/embed", "?platform=telegram", "signed-launch"),
+        client,
+        fetchImpl: async () => {
+          const response = Response.json({ token: "old-exchange-token" });
+          response.json = async () => {
+            if (change === "owner") client.setToken("new-owner-token");
+            else base = "https://other-agent.example";
+            return { token: "old-exchange-token" };
+          };
+          return response;
+        },
+      });
+      expect(outcome).toEqual({
+        status: "failed",
+        reason: "authority_changed",
+      });
+      expect(setToken).not.toHaveBeenCalledWith("old-exchange-token");
+    },
+  );
+
   it("is a no-op off the /embed route", async () => {
     const fetchImpl = fakeFetch(jsonResponse(200, {}));
     const { client, setToken } = fakeClient();
@@ -123,11 +220,46 @@ describe("runEmbedHandshake", () => {
     const [url, init] = fetchImpl.mock.calls[0];
     expect(url).toBe(`${BASE}/api/embed/auth`);
     expect(init?.method).toBe("POST");
+    expect(init?.redirect).toBe("error");
+    expect(init?.cache).toBe("no-store");
     expect(JSON.parse(String(init?.body))).toEqual({
       platform: "telegram",
       signedLaunchPayload: "tg-init-data",
       accountId: "acct-1",
     });
+  });
+
+  it("preserves signed launch bytes and leaves Apps readiness to the mounted UI", async () => {
+    let readyCalls = 0;
+    const win = fakeWin(
+      "/embed/apps",
+      "?platform=telegram",
+      "  exact-signed-payload  ",
+    );
+    Object.assign(win, {
+      Telegram: {
+        WebApp: {
+          initData: "  exact-signed-payload  ",
+          ready: () => {
+            readyCalls += 1;
+          },
+        },
+      },
+    });
+    const calls: string[] = [];
+    const { client } = fakeClient();
+    await runEmbedHandshake({
+      win,
+      client,
+      fetchImpl: async (_url, init) => {
+        calls.push(String(init?.body));
+        return Response.json({ token: "fixture" });
+      },
+    });
+    expect(JSON.parse(calls[0]).signedLaunchPayload).toBe(
+      "  exact-signed-payload  ",
+    );
+    expect(readyCalls).toBe(0);
   });
 
   it("exchanges a discord Activity code from the query string", async () => {

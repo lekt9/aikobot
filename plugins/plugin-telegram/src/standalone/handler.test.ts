@@ -49,6 +49,7 @@ function makeRuntime(
     createMemory,
     messageService: { handleMessage },
     reportError: vi.fn(),
+    emitEvent: vi.fn(async () => undefined),
   } as unknown as IAgentRuntime;
   return { runtime, cache, createMemory, handleMessage, pairingService };
 }
@@ -164,6 +165,31 @@ describe("standalone Telegram durable identity", () => {
 });
 
 describe("standalone Telegram DM policy gate", () => {
+  it.each(["/start", "hello Aiko"])(
+    "publishes activity for %s before the pairing gate",
+    async (text) => {
+      const { runtime, handleMessage } = makeRuntime({
+        settings: { TELEGRAM_DM_POLICY: "pairing" },
+      });
+      const chat = { id: 42, type: "private" };
+      const from = { id: 42, is_bot: false };
+      await handleTelegramStandaloneMessage(runtime, {
+        chat,
+        from,
+        message: { text, chat, from },
+        reply: vi.fn(async () => undefined),
+      });
+      expect(runtime.emitEvent).toHaveBeenCalledWith(
+        "TELEGRAM_USER_ACTIVITY",
+        expect.objectContaining({
+          source: "telegram",
+          entityId: expect.any(String),
+          accountId: "default",
+        }),
+      );
+      expect(handleMessage).not.toHaveBeenCalled();
+    },
+  );
   beforeEach(() => vi.clearAllMocks());
 
   it("holds an unconfigured private chat by default and replies with the pairing code", async () => {
