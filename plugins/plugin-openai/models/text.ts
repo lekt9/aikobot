@@ -384,12 +384,28 @@ function isOpenCodeGoMode(runtime: IAgentRuntime): boolean {
   );
 }
 
+/** Identify the direct Codegraff model that accepts explicit thinking suppression. */
+function isCodegraffDeepSeekFlash(runtime: IAgentRuntime, modelName?: string): boolean {
+  if (modelName?.trim().toLowerCase() !== "deepseek-flash" || isProxyMode(runtime)) return false;
+  try {
+    const url = new URL(getBaseURL(runtime));
+    return (
+      url.origin === "https://gateway.codegraff.com" &&
+      (url.pathname === "/v1" || url.pathname === "/v1/")
+    );
+  } catch {
+    // error-policy:J3 Invalid endpoint configuration cannot match this wire contract.
+    return false;
+  }
+}
+
 /** Maps thinking suppression only for exact model ids on proven endpoints. */
 function resolveThinkingOffReasoningEffort(
   runtime: IAgentRuntime,
   modelName: string | undefined
 ): "low" | "none" | undefined {
   if (!modelName) return undefined;
+  if (isCodegraffDeepSeekFlash(runtime, modelName)) return "none";
   const cerebrasId = normalizeCerebrasModelId(modelName);
   if (isCerebrasMode(runtime)) {
     if (cerebrasId === "gpt-oss-120b") return "low";
@@ -430,6 +446,7 @@ function resolveReasoningEffort(
   const raw = runtime.getSetting("OPENAI_REASONING_EFFORT");
   const normalized = typeof raw === "string" ? raw.trim().toLowerCase() : "";
   if (normalized === "none") {
+    if (isCodegraffDeepSeekFlash(runtime, modelName)) return "none";
     if (
       isCerebrasMode(runtime) &&
       modelName &&

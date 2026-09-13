@@ -403,6 +403,42 @@ describe("Cerebras Qwen 3.8 reasoning contract", () => {
   });
 });
 
+describe("Codegraff DeepSeek Flash tool-call compatibility", () => {
+  it("suppresses thinking for the structured response handler and an explicit operator setting", () => {
+    const runtime = buildRuntime({ OPENAI_BASE_URL: "https://gateway.codegraff.com/v1" });
+    const opts = __INTERNAL_resolveProviderOptions(
+      { prompt: "hi", providerOptions: { eliza: { thinking: "off" } } } as never,
+      runtime,
+      "deepseek-flash"
+    );
+    expect(opts?.openai).toMatchObject({ reasoningEffort: "none" });
+    const configured = buildRuntime({
+      OPENAI_BASE_URL: "https://gateway.codegraff.com/v1",
+      OPENAI_REASONING_EFFORT: "none",
+    });
+    expect(
+      __INTERNAL_resolveProviderOptions({ prompt: "hi" } as never, configured, "deepseek-flash")
+        ?.openai
+    ).toMatchObject({ reasoningEffort: "none" });
+  });
+
+  it.each([
+    ["https://gateway.codegraff.com.example.test/v1", "deepseek-flash"],
+    ["https://gateway.codegraff.com/v2", "deepseek-flash"],
+    ["https://gateway.codegraff.com/v1", "deepseek-flash-other"],
+  ])("does not apply the compatibility field to %s with %s", (url, model) => {
+    const runtime = buildRuntime({ OPENAI_BASE_URL: url, OPENAI_REASONING_EFFORT: "none" });
+    const opts = __INTERNAL_resolveProviderOptions(
+      { prompt: "hi", providerOptions: { eliza: { thinking: "off" } } } as never,
+      runtime,
+      model
+    );
+    expect(
+      (opts?.openai as { reasoningEffort?: string } | undefined)?.reasoningEffort
+    ).toBeUndefined();
+  });
+});
+
 describe("eliza.thinking='off' reasoning suppression (DeepSeek V4 Flash)", () => {
   const thinkingOff = { prompt: "hi", providerOptions: { eliza: { thinking: "off" } } } as never;
 
