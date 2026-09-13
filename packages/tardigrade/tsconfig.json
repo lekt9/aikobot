@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ESNext", "DOM"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "ignoreDeprecations": "6.0",
+    "types": ["node", "bun", "@cloudflare/workers-types"],
+    "typeRoots": [
+      "./node_modules/@types",
+      "../../node_modules/@types",
+      "../../node_modules/.bun/node_modules/@types",
+      "../../node_modules",
+      "../../node_modules/.bun/node_modules"
+    ],
+    "paths": {
+      "@elizaos/core/edge": ["../core/src/index.edge.ts"],
+      "@elizaos/core": ["../core/src/index.node.ts"],
+      "@elizaos/core/*": ["../core/src/*"],
+      "@elizaos/shared": ["../shared/src/index.ts"],
+      "@elizaos/shared/*": ["../shared/src/*"],
+      "@elizaos/plugin-todos/edge": ["../../plugins/plugin-todos/src/edge.ts"],
+      "@elizaos/plugin-web-search/edge": ["../../plugins/plugin-web-search/src/edge.ts"]
+    }
+  },
+  "include": ["src", "tests", "scripts", "actor.ts", "worker.ts", "server.ts"],
+  "exclude": ["node_modules", ".tardigrade", ".wrangler"]
+}

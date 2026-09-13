@@ -1,0 +1,16 @@
+# Local secrets for `bun run dev` and `wrangler dev`; copy to .dev.vars.
+# Bearer token every Tardigrade route except /healthz and GET / requires.
+TARDIGRADE_TOKEN=replace-with-a-random-token
+# OpenAI-compatible chat-completions credential and endpoint.
+OPENAI_API_KEY=replace-with-the-provider-key
+OPENAI_BASE_URL=https://api.openai.com/v1
+# Model id at that endpoint and the provider label recorded in traces.
+ELIZA_TARDIGRADE_MODEL=gpt-5-mini
+ELIZA_TARDIGRADE_MODEL_PROVIDER=openai
+# Sent as reasoning_effort; reasoning gateways need "none" for required tool calls.
+# ELIZA_TARDIGRADE_REASONING_EFFORT=none
+# Agent identity used for entity, room, and world ids (default eliza-tardigrade).
+# ELIZA_TARDIGRADE_AGENT_KEY=eliza-tardigrade
+# Bun host only: SQLite storage directory and port.
+# ELIZA_TARDIGRADE_STORAGE=.tardigrade/eliza
+# PORT=4242
