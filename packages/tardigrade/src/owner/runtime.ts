@@ -242,10 +242,17 @@ export function createOwnerRuntime(options: OwnerRuntimeOptions): OwnerRuntime {
       // receipt is withdrawn; an unsafe attempt keeps it, refusing silent replay.
       if (executor.policy !== "unsafe")
         options.backend.delete(receiptKey(invocation.key));
+      // The executor's own code survives the wrapper: a role refusal, a policy
+      // mismatch and an unknown action are different answers, and the caller —
+      // ultimately the model — must be able to tell them apart.
+      const declared = (cause as { code?: unknown }).code;
       throw new ElizaError(
         `Owner invocation ${invocation.kind}/${invocation.name} failed`,
         {
-          code: TARDIGRADE_INVOCATION_FAILED,
+          code:
+            typeof declared === "string" && declared.length > 0
+              ? declared
+              : TARDIGRADE_INVOCATION_FAILED,
           cause: cause instanceof Error ? cause : new Error(String(cause)),
           context: {
             owner: options.owner,

@@ -44,6 +44,14 @@ export type ElizaPackageServices =
   | EventLog
   | Self;
 
+/**
+ * MCP-style behavior hints, from the action's declared effect policy. They
+ * are also the shadow-run wall: the reactor refuses a call that is neither
+ * read-only nor closed-world before it reaches the method, so in a shadow run
+ * only `read` actions execute. That is the intended reading — a dry run must
+ * not write — and it is why an untagged action, which classifies as unsafe,
+ * is never silently executed there.
+ */
 const ANNOTATIONS: Record<
   ElizaEffectPolicy,
   {
