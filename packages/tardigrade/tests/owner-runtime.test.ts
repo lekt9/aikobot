@@ -229,9 +229,20 @@ describe("owner object port", () => {
     const namespace = {
       getByName: (name: string) => ({
         invoke: async (owner: string, request: OwnerInvocation) => {
+          // A foreign owner rejects hard; a refused invocation is data.
           if (owner !== name) throw new Error("foreign owner refused");
+          if (request.kind === "refuse") {
+            return {
+              ok: false as const,
+              code: "TARDIGRADE_ACTION_UNKNOWN",
+              message: "no such action",
+            };
+          }
           calls.push({ name, owner, key: request.key });
-          return { result: name, events: [], replayed: false };
+          return {
+            ok: true as const,
+            value: { result: name, events: [], replayed: false },
+          };
         },
       }),
     };
@@ -241,5 +252,28 @@ describe("owner object port", () => {
     ).toMatchObject({ result: "alice" });
     expect(calls).toEqual([{ name: "alice", owner: "alice", key: "p1" }]);
     expect(() => ownerObjectPort(namespace, "../bob")).toThrow();
+
+    // A refused invocation is a typed failure the caller can answer — never a
+    // defect. This is the workerd path plugin methods catch with Effect.result.
+    const refused = await Effect.runPromiseExit(
+      alice.invoke(invocation("p2", "refuse")),
+    );
+    expect(refused._tag).toBe("Failure");
+    const failure = await Effect.runPromise(
+      Effect.result(alice.invoke(invocation("p3", "refuse"))),
+    );
+    expect(failure._tag).toBe("Failure");
+    if (failure._tag === "Failure") {
+      expect(failure.failure.code).toBe("TARDIGRADE_ACTION_UNKNOWN");
+    }
+
+    // A rejected promise (a foreign owner, a transport fault) is also a typed
+    // failure, not a defect.
+    const foreign = namespace.getByName("alice");
+    const bob = ownerObjectPort({ getByName: () => foreign }, "bob");
+    const transport = await Effect.runPromise(
+      Effect.result(bob.invoke(invocation("p4", "count"))),
+    );
+    expect(transport._tag).toBe("Failure");
   });
 });

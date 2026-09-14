@@ -9,7 +9,11 @@
 
 import { DurableObject } from "cloudflare:workers";
 import type { StateBackend } from "../owner/backend";
-import type { OwnerInvocation, OwnerInvocationResult } from "../owner/port";
+import {
+  type OwnerInvocation,
+  type OwnerInvocationOutcome,
+  TARDIGRADE_INVOCATION_FAILED,
+} from "../owner/port";
 import {
   createOwnerRuntime,
   type OwnerRuntime,
@@ -52,10 +56,29 @@ export function defineOwnerObject<WorkerEnv>(
     async invoke(
       owner: string,
       invocation: OwnerInvocation,
-    ): Promise<OwnerInvocationResult> {
+    ): Promise<OwnerInvocationOutcome> {
+      // A foreign owner is a routing invariant, not a turn-level refusal: it
+      // rejects hard and must never resolve to an outcome.
       const runtime = this.runtimeFor(owner);
       try {
-        return await runtime.invoke(invocation);
+        try {
+          return { ok: true, value: await runtime.invoke(invocation) };
+        } catch (cause) {
+          // The owner runtime already re-raised the executor's own code; carry
+          // it back as data so it survives the RPC boundary intact.
+          const error = cause as { code?: unknown; message?: unknown };
+          return {
+            ok: false,
+            code:
+              typeof error?.code === "string"
+                ? error.code
+                : TARDIGRADE_INVOCATION_FAILED,
+            message:
+              typeof error?.message === "string"
+                ? error.message
+                : String(cause),
+          };
+        }
       } finally {
         await this.ctx.storage.sync();
       }

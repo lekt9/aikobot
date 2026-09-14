@@ -87,11 +87,22 @@ export class OwnerRuntimePort extends Context.Service<
   OwnerRuntimePortService
 >()("elizaos/tardigrade/OwnerRuntimePort") {}
 
+/**
+ * What one owner Durable Object hands back across the RPC boundary. A thrown
+ * Error loses its custom `code` in transit, so a refused invocation is
+ * returned as data rather than thrown: `ok: false` carries the executor's own
+ * code to the caller, and only a hard routing refusal (a foreign owner) still
+ * rejects the promise.
+ */
+export type OwnerInvocationOutcome =
+  | { readonly ok: true; readonly value: OwnerInvocationResult }
+  | { readonly ok: false; readonly code: string; readonly message: string };
+
 export interface OwnerObjectStub {
   invoke(
     owner: string,
     invocation: OwnerInvocation,
-  ): Promise<OwnerInvocationResult>;
+  ): Promise<OwnerInvocationOutcome>;
 }
 
 export interface OwnerObjectNamespace {
@@ -107,8 +118,27 @@ export function ownerObjectPort(
   return {
     owner,
     invoke: (invocation) =>
-      Effect.promise(() =>
-        namespace.getByName(owner).invoke(owner, invocation),
+      Effect.tryPromise({
+        // A rejected promise is a transport or routing failure (a foreign
+        // owner), never a plain executor refusal; either way it is a typed
+        // failure the caller can answer, not a defect that kills the turn.
+        try: () => namespace.getByName(owner).invoke(owner, invocation),
+        catch: (cause) => ownerInvocationError(owner, invocation, cause),
+      }).pipe(
+        Effect.flatMap((outcome) =>
+          outcome.ok
+            ? Effect.succeed(outcome.value)
+            : Effect.fail(
+                new OwnerInvocationError({
+                  owner,
+                  key: invocation.key,
+                  kind: invocation.kind,
+                  name: invocation.name,
+                  code: outcome.code,
+                  message: outcome.message,
+                }),
+              ),
+        ),
       ),
   };
 }
