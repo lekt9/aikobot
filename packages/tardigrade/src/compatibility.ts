@@ -24,6 +24,15 @@ export interface TardigradePluginCompatibility {
   readonly requiredSecrets: ReadonlyArray<string>;
   /** Explicit per-action policy when structural tags are not precise enough. */
   readonly effectPolicies?: Readonly<Record<string, ElizaEffectPolicy>>;
+  /**
+   * Acknowledges that the plugin declares HTTP routes the Tardigrade host does
+   * not serve. The routes are inert in an owner runtime — no HTTP surface
+   * reaches them — so a plugin whose value is its actions, providers and
+   * services (not its routes) is mountable once its author states this. The
+   * default remains a refusal, so an unacknowledged route surface is still an
+   * error rather than a silent drop.
+   */
+  readonly unservedRoutes?: boolean;
 }
 
 export interface DeclaredPlugin {
@@ -123,7 +132,7 @@ export function pluginCompatibilityErrors(
     );
   }
   const routes = plugin.routes?.length ?? 0;
-  if (routes > 0) {
+  if (routes > 0 && compatibility.unservedRoutes !== true) {
     errors.push(
       `${plugin.name}: declares ${routes} HTTP route(s); the Tardigrade host serves no plugin HTTP surface`,
     );

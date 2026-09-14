@@ -29,6 +29,11 @@ import {
   ownerTodoStore,
 } from "../stores/owner-todos";
 import { elizaAgentId, taskServicePlugin } from "../turn";
+import {
+  type AccessOwnerOptions,
+  accessCharacter,
+  accessOwnerPlugins,
+} from "./access";
 import { nativeExecutors } from "./executor";
 import { tickExecutor } from "./tasks";
 
@@ -90,6 +95,13 @@ export interface NativeOwnerConfig {
   /** Extra invocation kinds a host mounts (scheduling ticks, remote packages). */
   readonly executors?: Readonly<Record<string, OwnerExecutor>>;
   readonly plugins?: (backend: StateBackend) => ReadonlyArray<DeclaredPlugin>;
+  /**
+   * When set, the owner runtime also mounts Access (and its scheduler) in
+   * owner-token mode, so the engine can act through the four ACCESS actions.
+   * Absent leaves the runtime with only its base plugins, so a deployment
+   * without Access secrets never fails a turn reaching for an absent service.
+   */
+  readonly access?: AccessOwnerOptions;
   readonly now?: () => number;
 }
 
@@ -101,10 +113,16 @@ export type NativeOwnerBuild = (
 /** How every host builds one owner's runtime for the native composition. */
 export function nativeOwnerBuild(config: NativeOwnerConfig): NativeOwnerBuild {
   return (_owner, backend) => {
-    const declared = (config.plugins ?? nativeOwnerPlugins)(backend);
+    const base = (config.plugins ?? nativeOwnerPlugins)(backend);
+    const declared =
+      config.access === undefined ? base : accessOwnerPlugins(base);
+    const character =
+      config.access === undefined
+        ? config.character
+        : accessCharacter(config.character, config.access);
     return {
       agentId: elizaAgentId(config.agentKey),
-      character: config.character,
+      character,
       // Core's TaskService is not an edge basic service; scheduled work needs
       // it registered, in serverless mode, so only a host tick runs it.
       plugins: [taskServicePlugin, ...declared.map((entry) => entry.plugin)],

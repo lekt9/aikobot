@@ -131,6 +131,15 @@ export {
   modelRequestFingerprint,
 } from "./model";
 export {
+  ACCESS_COMPATIBILITY,
+  ACCESS_SCHEDULING_COMPATIBILITY,
+  type AccessOwnerOptions,
+  accessCharacter,
+  accessOptionsFromEnv,
+  accessOwnerPlugins,
+  TARDIGRADE_ACCESS_CONFIG,
+} from "./native/access";
+export {
   DEFAULT_NATIVE_BUDGET,
   DEFAULT_NATIVE_CALL_TIMEOUT_MS,
   type ElizaNativeActor,
@@ -250,6 +259,7 @@ export {
 } from "./owner/durable-adapter";
 export {
   type OwnerInvocation,
+  type OwnerInvocationOutcome,
   type OwnerInvocationResult,
   type OwnerObjectNamespace,
   type OwnerObjectStub,
