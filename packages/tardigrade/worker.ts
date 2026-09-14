@@ -1,39 +1,42 @@
 /**
  * Cloudflare Worker entry: mounts the Eliza actor on Durable Objects and
- * serves Tardigrade's actor, thread, method, and event routes. `GET /` is a
- * public identity document for operators and release probes; every other
- * route is Tardigrade's, protected by `TARDIGRADE_TOKEN`. Turn services come
- * from the Worker bindings; `OPENAI_API_KEY` and `TARDIGRADE_TOKEN` are
- * secrets.
+ * serves Tardigrade's actor, thread, method, and event routes for many
+ * owners. `GET /` is a public identity document for operators and release
+ * probes; every other route needs an Aiko owner token
+ * (`ELIZA_OWNER_TOKEN_SECRET`) or the operator bearer (`TARDIGRADE_TOKEN`).
+ * Turn services come from the Worker bindings; the model credential and
+ * both bearers are secrets.
  */
 
 import actor from "./actor";
 import { name as packageName, version as packageVersion } from "./package.json";
-import { defineElizaWorkerHost, type ElizaWorkerEnv } from "./src/cloudflare";
+import { defineElizaWorker, type ElizaWorkerEnv } from "./src/cloudflare";
 import { elizaTurnServicesLayer } from "./src/hosts/config";
 
-const { host, fetch: tardigradeFetch } = defineElizaWorkerHost(
+const worker = defineElizaWorker({
   actor,
-  (context) =>
+  layersFor: (context) =>
     elizaTurnServicesLayer({
       env: context.env as unknown as Record<string, string | undefined>,
     }),
-);
+});
 
-export const { ActorDO, ThreadDO } = host;
+export const { ActorDO, ThreadDO } = worker;
 
 const identity = (env: ElizaWorkerEnv): Response =>
   Response.json({
     product: packageName,
     version: packageVersion,
     actor: actor.name,
+    composition: "pipeline",
     methods: Object.keys(actor.methods),
+    identity: worker.modes(env),
     model: env.ELIZA_TARDIGRADE_MODEL ?? null,
     provider: env.ELIZA_TARDIGRADE_MODEL_PROVIDER ?? null,
     routes: { health: "/healthz", api: "/v1" },
   });
 
-type WorkerFetch = typeof tardigradeFetch;
+type WorkerFetch = typeof worker.fetch;
 
 export default {
   fetch: (
@@ -46,6 +49,6 @@ export default {
     ) {
       return identity(env);
     }
-    return tardigradeFetch(request, env, context);
+    return worker.fetch(request, env, context);
   },
 };

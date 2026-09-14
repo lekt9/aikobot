@@ -1,0 +1,16 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "eliza-tardigrade-owner-test",
+  "main": "tests/fixtures/owner-worker.ts",
+  "compatibility_date": "2026-08-06",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": false,
+  "durable_objects": {
+    "bindings": [{ "name": "OWNERS", "class_name": "OwnerDO" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["OwnerDO"] }],
+  "alias": {
+    "@elizaos/core/edge": "../core/src/index.edge.ts",
+    "@elizaos/core/services/task": "../core/src/services/task.ts"
+  }
+}

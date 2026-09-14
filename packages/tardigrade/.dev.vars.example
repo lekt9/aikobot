@@ -1,6 +1,11 @@
 # Local secrets for `bun run dev` and `wrangler dev`; copy to .dev.vars.
 # Bearer token every Tardigrade route except /healthz and GET / requires.
 TARDIGRADE_TOKEN=replace-with-a-random-token
+# Owner tokens (HS256, issued by the Aiko backend) scope every route to one owner;
+# at least 32 bytes. Leave unset for a single-owner deployment.
+ELIZA_OWNER_TOKEN_SECRET=replace-with-at-least-32-random-bytes
+# ELIZA_OWNER_TOKEN_ISSUER=aiko
+# ELIZA_OWNER_TOKEN_AUDIENCE=eliza
 # OpenAI-compatible chat-completions credential and endpoint.
 OPENAI_API_KEY=replace-with-the-provider-key
 OPENAI_BASE_URL=https://api.openai.com/v1

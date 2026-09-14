@@ -48,6 +48,7 @@ import {
   initialHistory,
   reduceHistory,
 } from "./history";
+import { ownerOfInstance } from "./hosts/identity";
 import {
   initialJournal,
   type JournalState,
@@ -314,11 +315,11 @@ async function executeTurn(
   }
   // The actor instance is the tenant the host allocated the thread under; an
   // owner claim naming another tenant cannot be admitted by a label.
-  if (owner !== self.instance) {
+  if (owner !== ownerOfInstance(self.instance)) {
     return {
       kind: "failed",
       cause: "message_invalid",
-      error: `${TARDIGRADE_OWNER_INSTANCE_MISMATCH}: owner ${owner} does not match the actor instance ${self.instance} that holds this thread`,
+      error: `${TARDIGRADE_OWNER_INSTANCE_MISMATCH}: owner ${owner} does not match the owner ${ownerOfInstance(self.instance)} of the actor instance that holds this thread`,
     };
   }
   if (input.bound !== undefined && input.bound.owner !== owner) {
@@ -368,10 +369,10 @@ async function executeTick(
   append: (events: ReadonlyArray<Event>) => Promise<void>,
   signal: AbortSignal,
 ): Promise<TickResult> {
-  if (input.owner !== self.instance) {
+  if (input.owner !== ownerOfInstance(self.instance)) {
     return {
       kind: "failed",
-      error: `${TARDIGRADE_OWNER_INSTANCE_MISMATCH}: owner ${input.owner} does not match the actor instance ${self.instance} that holds this thread`,
+      error: `${TARDIGRADE_OWNER_INSTANCE_MISMATCH}: owner ${input.owner} does not match the owner ${ownerOfInstance(self.instance)} of the actor instance that holds this thread`,
     };
   }
   if (input.bound !== undefined && input.bound.owner !== input.owner) {

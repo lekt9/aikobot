@@ -6,8 +6,12 @@
  */
 
 export {
+  defineElizaWorker,
   defineElizaWorkerHost,
+  type ElizaIdentityMode,
   type ElizaWorkerEnv,
   type ElizaWorkerHost,
   type ElizaWorkerLayer,
+  type ElizaWorkerLayerContext,
+  type ElizaWorkerOptions,
 } from "./hosts/cloudflare";

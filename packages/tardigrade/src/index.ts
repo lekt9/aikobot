@@ -58,6 +58,18 @@ export {
   type TurnHistoryEntry,
 } from "./history";
 export {
+  type Authenticate,
+  type AuthenticatedOwner,
+  bearerOf,
+  createOwnerTokenIssuer,
+  createOwnerTokenVerifier,
+  type OwnerIdentity,
+  type OwnerTokenEnv,
+  type OwnerTokenOptions,
+  ownerTokenAuthenticate,
+  TARDIGRADE_OWNER_TOKEN_CONFIG,
+} from "./hosts/auth";
+export {
   createElizaBunHost,
   type ElizaBunHost,
   type ElizaBunHostOptions,
@@ -67,6 +79,25 @@ export {
   type ElizaTurnServicesLayerOptions,
   elizaTurnServicesLayer,
 } from "./hosts/config";
+export {
+  ElizaOwner,
+  instanceName,
+  instanceOwner,
+  isScopedInstance,
+  isScopedObject,
+  objectOwner,
+  ownerOfInstance,
+  scopedNamespace,
+  TARDIGRADE_FOREIGN_OWNER,
+  TARDIGRADE_INSTANCE_UNSCOPED,
+  TARDIGRADE_OWNER_INVALID,
+  userInstance,
+  validateOwner,
+} from "./hosts/identity";
+export {
+  type DurableSqlStorage,
+  durableObjectBackend,
+} from "./hosts/storage";
 export {
   type BoundaryExecutionContext,
   type BoundaryOutcome,
@@ -99,6 +130,52 @@ export {
   modelPortRequest,
   modelRequestFingerprint,
 } from "./model";
+export {
+  CHUNK_SIZE,
+  chunkedSqlBackend,
+  memoryBackend,
+  type SqlRunner,
+  type StateBackend,
+} from "./owner/backend";
+export {
+  type BunOwnerRegistry,
+  type BunOwnerRegistryOptions,
+  bunOwnerRegistry,
+} from "./owner/bun";
+export {
+  DurableElizaDatabaseAdapter,
+  OWNER_ADAPTER_KEY,
+  TARDIGRADE_STATE_SCHEMA,
+} from "./owner/durable-adapter";
+export {
+  type OwnerInvocation,
+  type OwnerInvocationResult,
+  type OwnerObjectNamespace,
+  type OwnerObjectStub,
+  OwnerRuntimePort,
+  type OwnerRuntimePortService,
+  ownerObjectPort,
+  TARDIGRADE_INVOCATION_FAILED,
+  TARDIGRADE_INVOCATION_KEY_REUSED,
+  TARDIGRADE_INVOCATION_UNKNOWN_KIND,
+} from "./owner/port";
+export {
+  createOwnerRuntime,
+  invocationSignature,
+  type OwnerEffectPolicy,
+  type OwnerExecutor,
+  type OwnerExecutorContext,
+  type OwnerExecutorOutput,
+  type OwnerReceipt,
+  type OwnerRuntime,
+  type OwnerRuntimeOptions,
+  RECEIPT_PREFIX,
+  receiptKey,
+} from "./owner/runtime";
+export {
+  type SqliteBackend,
+  sqliteBackend,
+} from "./owner/sqlite-backend";
 export {
   createOpenAICompatibleModelPort,
   type OpenAICompatibleModelPortOptions,
