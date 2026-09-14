@@ -131,6 +131,81 @@ export {
   modelRequestFingerprint,
 } from "./model";
 export {
+  DEFAULT_NATIVE_BUDGET,
+  DEFAULT_NATIVE_CALL_TIMEOUT_MS,
+  type ElizaNativeActor,
+  type ElizaNativeActorOptions,
+  type ElizaNativeServices,
+  elizaNativeActor,
+  type MountedElizaNativeActor,
+  NEVER_SPILL_BYTES,
+} from "./native/actor";
+export {
+  characterComponent,
+  characterInstructions,
+} from "./native/character";
+export {
+  ELIZA_CONTEXT_TAG,
+  type ElizaContextOptions,
+  elizaContextComponent,
+  elizaEvidenceFirst,
+  LOSSLESS_RENDER_CAP,
+  losslessContext,
+  transitionTag,
+} from "./native/context";
+export {
+  ELIZA_EVALUATE_TAG,
+  type ElizaEvaluatorOptions,
+  elizaEvaluatorComponent,
+} from "./native/evaluators";
+export {
+  ELIZA_CONTEXT_PREFIX,
+  ELIZA_EVALUATE_PREFIX,
+  elizaContextComposed,
+  elizaContextFailed,
+  elizaContextKeys,
+  elizaEvaluated,
+  elizaEvaluateKeys,
+  elizaEvaluationFailed,
+} from "./native/events";
+export {
+  actionCompatibilityIndex,
+  actionKindOf,
+  type NativeActionInput,
+  type NativeActionOutput,
+  type NativeContextInput,
+  type NativeContextOutput,
+  type NativeEvaluateInput,
+  type NativeEvaluateOutput,
+  type NativeExecutorOptions,
+  type NativeTurnRef,
+  nativeExecutors,
+  TARDIGRADE_ACTION_POLICY_MISMATCH,
+  TARDIGRADE_ACTION_UNKNOWN,
+  TARDIGRADE_ACTION_VALIDATION_REFUSED,
+  TARDIGRADE_EVALUATOR_SERVICE_MISSING,
+  TARDIGRADE_ROLE_REFUSED,
+} from "./native/executor";
+export {
+  type NativeOwnerBuild,
+  type NativeOwnerConfig,
+  nativeDeclarationPlugins,
+  nativeOwnerBuild,
+  nativeOwnerPlugins,
+  TARDIGRADE_DECLARATION_ONLY,
+} from "./native/owner";
+export {
+  currentTurnRef,
+  type ElizaPackageOptions,
+  type ElizaPackageServices,
+  elizaPackage,
+  elizaPackages,
+  methodNameOf,
+  packageNameOf,
+  TARDIGRADE_PACKAGE_METHOD_COLLISION,
+  TARDIGRADE_TURN_UNKNOWN,
+} from "./native/packages";
+export {
   CHUNK_SIZE,
   chunkedSqlBackend,
   memoryBackend,
@@ -200,11 +275,21 @@ export {
   taskWorkerPolicy,
 } from "./scheduling";
 export {
+  documentTodoStore,
+  reviveTodoSeed,
+  type TodoDocument,
+} from "./stores/document-todos";
+export {
   KV_TODOS_COMPATIBILITY,
   KV_TODOS_KEY,
   kvTodoStore,
 } from "./stores/kv-todos";
 export { type MemoryTodoStore, memoryTodoStore } from "./stores/memory-todos";
+export {
+  OWNER_TODOS_COMPATIBILITY,
+  OWNER_TODOS_KEY,
+  ownerTodoStore,
+} from "./stores/owner-todos";
 export {
   type ElizaTickOutcome,
   type ElizaTickRequest,

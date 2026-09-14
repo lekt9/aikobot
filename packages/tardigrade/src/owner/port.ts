@@ -9,7 +9,7 @@
  * in-process registry; the contract is the same.
  */
 
-import { Context, Effect } from "effect";
+import { Context, Data, Effect } from "effect";
 import type { Event } from "tardie/core/event";
 import { validateOwner } from "../hosts/identity";
 
@@ -38,11 +38,47 @@ export interface OwnerInvocationResult {
   readonly replayed: boolean;
 }
 
+/**
+ * A refused or failed invocation. It is a typed failure rather than a defect
+ * so a caller can answer the model honestly — an uncertain effect must be
+ * reported, never retried behind the model's back or silently swallowed.
+ */
+export class OwnerInvocationError extends Data.TaggedError(
+  "OwnerInvocationError",
+)<{
+  readonly owner: string;
+  readonly key: string;
+  readonly kind: string;
+  readonly name: string;
+  readonly code: string;
+  readonly message: string;
+}> {}
+
+/** Wraps whatever an owner runtime threw as a typed invocation failure. */
+export function ownerInvocationError(
+  owner: string,
+  invocation: OwnerInvocation,
+  cause: unknown,
+): OwnerInvocationError {
+  const error = cause as { code?: string; message?: string };
+  return new OwnerInvocationError({
+    owner,
+    key: invocation.key,
+    kind: invocation.kind,
+    name: invocation.name,
+    code:
+      typeof error?.code === "string"
+        ? error.code
+        : "TARDIGRADE_INVOCATION_FAILED",
+    message: typeof error?.message === "string" ? error.message : String(cause),
+  });
+}
+
 export interface OwnerRuntimePortService {
   readonly owner: string;
   readonly invoke: (
     invocation: OwnerInvocation,
-  ) => Effect.Effect<OwnerInvocationResult, never>;
+  ) => Effect.Effect<OwnerInvocationResult, OwnerInvocationError>;
 }
 
 /** Per-thread service: the owner's runtime, supplied by the host layer. */

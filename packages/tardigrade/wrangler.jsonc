@@ -26,6 +26,8 @@
   "alias": {
     "@elizaos/core/edge": "../core/src/index.edge.ts",
     "@elizaos/core/services/task": "../core/src/services/task.ts",
+    "@elizaos/core/services/evaluator": "../core/src/services/evaluator.ts",
+    "@elizaos/core/runtime/context-gates": "../core/src/runtime/context-gates.ts",
     "@elizaos/plugin-todos/edge": "../../plugins/plugin-todos/src/edge.ts",
     "@elizaos/plugin-web-search/edge": "../../plugins/plugin-web-search/src/edge.ts"
   },

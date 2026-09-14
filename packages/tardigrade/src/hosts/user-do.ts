@@ -8,6 +8,7 @@
  */
 
 import { DurableObject } from "cloudflare:workers";
+import type { StateBackend } from "../owner/backend";
 import type { OwnerInvocation, OwnerInvocationResult } from "../owner/port";
 import {
   createOwnerRuntime,
@@ -18,10 +19,11 @@ import { validateOwner } from "./identity";
 import { durableObjectBackend } from "./storage";
 
 export interface OwnerObjectOptions<WorkerEnv> {
-  /** Everything but the owner and backend, from the Worker environment. */
+  /** Everything but the owner and backend; the object opens its own backend. */
   readonly build: (
     owner: string,
     env: WorkerEnv,
+    backend: StateBackend,
   ) => Omit<OwnerRuntimeOptions, "owner" | "backend">;
 }
 
@@ -38,10 +40,11 @@ export function defineOwnerObject<WorkerEnv>(
           "owner object identity mismatch: foreign owner refused",
         );
       }
+      const backend = durableObjectBackend(this.ctx.storage);
       this.owner ??= createOwnerRuntime({
-        ...options.build(owner, this.env),
+        ...options.build(owner, this.env, backend),
         owner,
-        backend: durableObjectBackend(this.ctx.storage),
+        backend,
       });
       return this.owner;
     }

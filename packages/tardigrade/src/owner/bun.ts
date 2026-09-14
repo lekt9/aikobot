@@ -10,7 +10,12 @@ import { createHash } from "node:crypto";
 import { join } from "node:path";
 import { Effect } from "effect";
 import { validateOwner } from "../hosts/identity";
-import type { OwnerInvocation, OwnerRuntimePortService } from "./port";
+import type { StateBackend } from "./backend";
+import {
+  type OwnerInvocation,
+  type OwnerRuntimePortService,
+  ownerInvocationError,
+} from "./port";
 import {
   createOwnerRuntime,
   type OwnerRuntime,
@@ -21,9 +26,10 @@ import { type SqliteBackend, sqliteBackend } from "./sqlite-backend";
 export interface BunOwnerRegistryOptions {
   /** Directory holding one SQLite file per owner. */
   readonly dir: string;
-  /** Everything but the owner and backend, which the registry supplies. */
+  /** Everything but the owner and backend; the registry opens the backend and passes it in. */
   readonly build: (
     owner: string,
+    backend: StateBackend,
   ) => Omit<OwnerRuntimeOptions, "owner" | "backend">;
 }
 
@@ -54,7 +60,7 @@ export function bunOwnerRegistry(
       const backend = sqliteBackend(pathFor(owner));
       entry = {
         runtime: createOwnerRuntime({
-          ...options.build(owner),
+          ...options.build(owner, backend),
           owner,
           backend,
         }),
@@ -70,7 +76,10 @@ export function bunOwnerRegistry(
     portFor: (owner) => ({
       owner,
       invoke: (invocation: OwnerInvocation) =>
-        Effect.promise(() => forOwner(owner).invoke(invocation)),
+        Effect.tryPromise({
+          try: () => forOwner(owner).invoke(invocation),
+          catch: (cause) => ownerInvocationError(owner, invocation, cause),
+        }),
     }),
     close: async () => {
       for (const [owner, entry] of runtimes) {
