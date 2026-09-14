@@ -10,6 +10,13 @@ import { spawn } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
+/**
+ * The wrangler to run. Code mode starts a dynamic Worker whose compatibility
+ * date can be newer than the installed binary supports, so a pinned newer
+ * release can be selected without changing the workspace manifest.
+ */
+export const wranglerSpec = () => process.env.ELIZA_WRANGLER ?? "wrangler";
+
 export function readDevVars(packageDir) {
   const path = join(packageDir, ".dev.vars");
   if (!existsSync(path))
@@ -107,7 +114,7 @@ export async function startWorkerd({
     await run(
       "bunx",
       [
-        "wrangler",
+        wranglerSpec(),
         "d1",
         "migrations",
         "apply",
@@ -123,7 +130,7 @@ export async function startWorkerd({
   const port = 8700 + Math.floor(Math.random() * 200);
   const url = `http://127.0.0.1:${port}`;
   const args = [
-    "wrangler",
+    wranglerSpec(),
     "dev",
     "--port",
     String(port),

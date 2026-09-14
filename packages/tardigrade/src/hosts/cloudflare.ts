@@ -17,6 +17,7 @@ import {
   type Env,
   type WorkerHost,
   workerHttp,
+  type workerModelServices,
 } from "tardie/cloudflare";
 import type { HostPorts } from "tardie/host/ports";
 import type { ElizaActor, ElizaTurnServices } from "../actor";
@@ -67,6 +68,12 @@ export interface ElizaWorkerOptions {
   readonly layersFor: (context: ElizaWorkerLayerContext) => ElizaWorkerLayer;
   /** Defaults to owner tokens from `ELIZA_OWNER_TOKEN_SECRET`. */
   readonly authenticate?: Authenticate<ElizaWorkerEnv>;
+  /**
+   * Model adapters and an optional deployment catalog. An actor that calls
+   * the model through Tardigrade's own `Infer` needs these; one that brings
+   * its own model port does not.
+   */
+  readonly services?: ReturnType<typeof workerModelServices>;
 }
 
 export interface ElizaWorkerHost {
@@ -168,6 +175,7 @@ export function defineElizaWorker(
           options.layersFor({ ...context, owner }),
         );
       }) as never,
+      ...(options.services === undefined ? {} : { services: options.services }),
     } as never,
   );
   const native = workerHttp(host);

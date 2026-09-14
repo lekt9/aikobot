@@ -30,6 +30,15 @@
       "@elizaos/plugin-web-search/edge": ["../../plugins/plugin-web-search/src/edge.ts"]
     }
   },
-  "include": ["src", "tests", "scripts", "actor.ts", "worker.ts", "server.ts"],
+  "include": [
+    "src",
+    "tests",
+    "scripts",
+    "actor.ts",
+    "native-actor.ts",
+    "worker.ts",
+    "worker-native.ts",
+    "server.ts"
+  ],
   "exclude": ["node_modules", ".tardigrade", ".wrangler"]
 }

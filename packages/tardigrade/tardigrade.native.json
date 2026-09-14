@@ -1,0 +1,22 @@
+{
+  "vars": {
+    "TARDIGRADE_CONFIG": {
+      "models": {
+        "allow": "*",
+        "providers": {
+          "deepseek": {
+            "baseUrl": "https://gateway.codegraff.com/v1",
+            "protocol": "openai-chat-completions",
+            "env": [
+              "OPENAI_API_KEY"
+            ]
+          }
+        },
+        "default": {
+          "provider": "deepseek",
+          "model_id": "deepseek-flash"
+        }
+      }
+    }
+  }
+}

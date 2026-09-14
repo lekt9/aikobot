@@ -1,0 +1,58 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "eliza-tardigrade-native",
+  "main": "worker-native.ts",
+  "compatibility_date": "2026-08-06",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "durable_objects": {
+    "bindings": [
+      { "name": "ACTORS", "class_name": "ActorDO" },
+      { "name": "THREADS", "class_name": "ThreadDO" },
+      { "name": "OWNERS", "class_name": "OwnerDO" }
+    ]
+  },
+  "worker_loaders": [{ "binding": "LOADER" }],
+  "migrations": [
+    { "tag": "v1", "new_sqlite_classes": ["ActorDO", "ThreadDO", "OwnerDO"] }
+  ],
+  "d1_databases": [
+    {
+      "binding": "CATALOG_DB",
+      "database_name": "eliza-tardigrade-catalog",
+      "database_id": "20d4f53c-153c-4949-b84c-99b1119ee55c",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "observability": { "enabled": true },
+  "limits": { "cpu_ms": 300000 },
+  "alias": {
+    "@elizaos/core/edge": "../core/src/index.edge.ts",
+    "@elizaos/core/services/task": "../core/src/services/task.ts",
+    "@elizaos/core/services/evaluator": "../core/src/services/evaluator.ts",
+    "@elizaos/core/runtime/context-gates": "../core/src/runtime/context-gates.ts",
+    "@elizaos/plugin-todos/edge": "../../plugins/plugin-todos/src/edge.ts",
+    "@elizaos/plugin-web-search/edge": "../../plugins/plugin-web-search/src/edge.ts"
+  },
+  "vars": {
+    "ELIZA_TARDIGRADE_AGENT_KEY": "eliza-tardigrade",
+    "ELIZA_OWNER_TOKEN_ISSUER": "aiko",
+    "ELIZA_OWNER_TOKEN_AUDIENCE": "eliza",
+    "TARDIGRADE_ALARM_DELAY_MILLIS": "120000",
+    "TARDIGRADE_MAX_CONCURRENT_THREADS": "4",
+    "TARDIGRADE_MODEL_CATALOG_LOAD_POLICY": "cache-first",
+    "TARDIGRADE_CONFIG": {
+      "models": {
+        "allow": "*",
+        "providers": {
+          "deepseek": {
+            "baseUrl": "https://gateway.codegraff.com/v1",
+            "protocol": "openai-chat-completions",
+            "env": ["OPENAI_API_KEY"]
+          }
+        },
+        "default": { "provider": "deepseek", "model_id": "deepseek-flash" }
+      }
+    }
+  }
+}
