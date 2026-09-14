@@ -235,7 +235,7 @@ async function teardown(runtime: AgentRuntime, turn: string): Promise<void> {
 }
 
 /** Core's TaskService is not part of the edge basic services; the adapter registers it. */
-const taskServicePlugin: Plugin = {
+export const taskServicePlugin: Plugin = {
   name: "tardigrade-task-service",
   description:
     "Core TaskService in serverless mode; host wakeups call runDueTasks().",

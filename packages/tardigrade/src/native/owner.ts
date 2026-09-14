@@ -28,8 +28,9 @@ import {
   OWNER_TODOS_COMPATIBILITY,
   ownerTodoStore,
 } from "../stores/owner-todos";
-import { elizaAgentId } from "../turn";
+import { elizaAgentId, taskServicePlugin } from "../turn";
 import { nativeExecutors } from "./executor";
+import { tickExecutor } from "./tasks";
 
 export const TARDIGRADE_DECLARATION_ONLY = "TARDIGRADE_DECLARATION_ONLY";
 
@@ -104,9 +105,12 @@ export function nativeOwnerBuild(config: NativeOwnerConfig): NativeOwnerBuild {
     return {
       agentId: elizaAgentId(config.agentKey),
       character: config.character,
-      plugins: declared.map((entry) => entry.plugin),
+      // Core's TaskService is not an edge basic service; scheduled work needs
+      // it registered, in serverless mode, so only a host tick runs it.
+      plugins: [taskServicePlugin, ...declared.map((entry) => entry.plugin)],
       executors: {
         ...nativeExecutors({ agentKey: config.agentKey, plugins: declared }),
+        tick: tickExecutor() as OwnerExecutor,
         ...(config.executors ?? {}),
       },
       ...(config.now === undefined ? {} : { now: config.now }),

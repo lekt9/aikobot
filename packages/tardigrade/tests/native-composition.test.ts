@@ -60,6 +60,7 @@ describe("native composition", () => {
     expect(Object.keys(actor.methods).sort()).toEqual([
       "message",
       "requestBudget",
+      "wake",
     ]);
     expect(() => validateActor(actor as never)).not.toThrow();
   });

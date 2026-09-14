@@ -32,7 +32,7 @@ import {
   infer,
   outputValidateOnce,
 } from "tardie";
-import type { Actor } from "tardie/core/actor";
+import { type Actor, calls, handles } from "tardie/core/actor";
 import type { DeclaredPlugin } from "../compatibility";
 import type { ElizaOwner } from "../hosts/identity";
 import type { OwnerRuntimePort } from "../owner/port";
@@ -46,6 +46,11 @@ import {
 import { elizaEvaluatorComponent } from "./evaluators";
 import { nativeDeclarationPlugins } from "./owner";
 import { elizaPackages } from "./packages";
+import {
+  ELIZA_WAKE_METHODS,
+  elizaTaskComponent,
+  elizaWakeMethod,
+} from "./tasks";
 
 /**
  * No result is ever replaced by a pointer. A spilled value would reach the
@@ -79,9 +84,18 @@ export type ElizaNativeServices = ElizaOwner | OwnerRuntimePort;
 export function elizaNativeActor(options: ElizaNativeActorOptions) {
   const declared = options.plugins ?? nativeDeclarationPlugins();
   const packages = elizaPackages(declared);
+  const name = options.name ?? "eliza";
+  // The task component both calls the wake method on its own thread and is the
+  // component that owns it; the wake is retired by its deadline, which is the
+  // whole point, so the declaration is what tells the contract it is covered.
+  const tasks = calls(
+    { kind: "caller", methods: ELIZA_WAKE_METHODS },
+    elizaWakeMethod,
+    handles(elizaWakeMethod, elizaTaskComponent()),
+  );
   return actor({
-    name: options.name ?? "eliza",
-    methods: agentMethods,
+    name,
+    methods: { ...agentMethods, ...ELIZA_WAKE_METHODS },
     components: [
       elizaEvidenceFirst(
         infer([
@@ -115,6 +129,7 @@ export function elizaNativeActor(options: ElizaNativeActorOptions) {
       ),
       budgetAuthority(),
       elizaEvaluatorComponent(),
+      tasks,
     ],
   });
 }
