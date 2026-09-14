@@ -567,7 +567,9 @@ export async function ocrImage(pngPath, opts = {}) {
 /**
  * Recognize a measured control's actual pixels when page segmentation omitted
  * its filled background. The caller retains the independent full-frame result;
- * this transcript never supplies labels from DOM text or expectations.
+ * this transcript never supplies labels from DOM text or expectations. Weak
+ * single-line recognition retries the same crop with multiline segmentation and
+ * the existing sparse preprocessing; the original attempts remain inspectable.
  * @param {Buffer|string} input
  * @param {{left:number, top:number, width:number, height:number}} rectangle
  * @param {{lang?:string, timeoutMs?:number}} [opts]
@@ -600,7 +602,45 @@ export async function ocrImageRegion(input, rectangle, opts = {}) {
     opts.timeoutMs ?? 30_000,
     "control-region",
   );
-  return buildOcrAttempt("control-region", recognition);
+  const primary = buildOcrAttempt("control-region", recognition);
+  if (isReliableOcrAttempt(primary, DEFAULT_OCR_CONFIDENCE_FLOOR)) {
+    return primary;
+  }
+  const attempts = [primary];
+  const automatic = buildOcrAttempt(
+    "control-region:auto",
+    await recognizeWithEngine(
+      engine,
+      crop,
+      opts.lang ?? "eng",
+      opts.timeoutMs ?? 30_000,
+      "auto",
+    ),
+  );
+  attempts.push(automatic);
+  if (!isReliableOcrAttempt(automatic, DEFAULT_OCR_CONFIDENCE_FLOOR)) {
+    for (const mode of ["sparse-high-contrast", "sparse-grayscale"]) {
+      const input = await (mode === "sparse-high-contrast"
+        ? buildHighContrastOcrInput(crop)
+        : buildGrayscaleOcrInput(crop));
+      attempts.push(
+        buildOcrAttempt(
+          `control-region:${mode}`,
+          await recognizeWithEngine(
+            engine,
+            input,
+            opts.lang ?? "eng",
+            opts.timeoutMs ?? 30_000,
+            mode,
+          ),
+        ),
+      );
+    }
+  }
+  return {
+    ...selectOcrAttempt(attempts, DEFAULT_OCR_CONFIDENCE_FLOOR),
+    attempts,
+  };
 }
 
 /** Legacy visual-qa OCR shape: `{ text, note }`. */

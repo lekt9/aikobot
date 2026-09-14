@@ -1585,6 +1585,9 @@ export class ElizaClient {
        *  swallowed → spinner with no progress). Implies `allowNonOk` for the
        *  202. */
       skipResume?: boolean;
+      /** Bind sensitive work to this exact authority epoch. Cutover repoint and
+       * automatic retries are disabled; every dispatch rechecks the epoch. */
+      boundAuthorityRevision?: number;
     },
   ): Promise<Response> {
     if (!this.apiAvailable) {
@@ -1630,6 +1633,16 @@ export class ElizaClient {
         ++requestAttempt,
       );
     let res = await requestOnce();
+    if (options?.boundAuthorityRevision !== undefined) {
+      if (res.ok || options.allowNonOk) return res;
+      throw new ApiError({
+        kind: "http",
+        path,
+        status: res.status,
+        message: "Bound request failed; inspect its result before retrying",
+        code: "bound_request_failed",
+      });
+    }
     // Personal-Eliza cutover repoint happens once, before classification: a
     // structural Shared rejection can rebind this client to the dedicated
     // runtime, after which the re-issued request (fresh base/url/token) enters
@@ -1947,7 +1960,13 @@ export class ElizaClient {
     path: string,
     requestUrl: string,
     init: RequestInit | undefined,
-    options: { allowNonOk?: boolean; timeoutMs?: number } | undefined,
+    options:
+      | {
+          allowNonOk?: boolean;
+          timeoutMs?: number;
+          boundAuthorityRevision?: number;
+        }
+      | undefined,
     token: string | null,
     requestAttempt: number,
   ): Promise<Response> {
@@ -1982,6 +2001,18 @@ export class ElizaClient {
         requestAttempt,
       );
       const transport = await this.rawRequestTransport(requestUrl);
+      if (
+        options?.boundAuthorityRevision !== undefined &&
+        options.boundAuthorityRevision !== this.authorityRevision
+      ) {
+        throw new ApiError({
+          kind: "http",
+          path,
+          status: 409,
+          code: "authority_changed",
+          message: "Request authority changed before dispatch",
+        });
+      }
       return await transport.request(requestUrl, requestInit, { timeoutMs });
     } catch (err) {
       // error-policy:J2 context-adding rethrow — throwRawRequestError wraps

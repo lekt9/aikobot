@@ -1,0 +1,11 @@
+# Apps drawer
+
+Owns the authenticated website account drawer and the reviewed Access credential form renderer. The host supplies `AccessClient`, receives Telegram authentication through its existing embed handshake, and advances `refreshKey` after committed Access events.
+
+Import `AppsDrawer` from `@elizaos/ui/components/access` and load `access.css` in the renderer. The JavaScript barrel is CSS-free. The host must replace or unmount the drawer when the authenticated owner changes.
+
+All generated inputs use the existing `data-agent-sensitive` contract, including usernames and email addresses. Credential values stay inside the mounted request form and its dedicated vault submission. Never attach this form to agent surface instrumentation, chat state, local storage, analytics, or session replay capture. Request changes remount the form by ID; close, submit, and expiry clear its inputs. Only reviewed Access fields render, with exact requested references bound to the selected account site and no arbitrary form actions. Browser handoffs use authenticated SDK frame reads and typed click, scroll, key, and resume commands; the UI exposes no arbitrary text or execution channel.
+
+Verify component behavior with `bun run --cwd packages/ui test --run src/components/access`. Run `node_modules/.bin/tsc --noEmit -p packages/ui/src/components/access/tsconfig.json` for the scoped component compiler gate and `bunx --no-install biome check packages/ui/src/components/access` for lint. The application owner additionally runs `bun run --cwd packages/app audit:app` and inspects desktop/mobile and interactive states. Component tests are not live Telegram or private-browser proof.
+
+Private browser images are local to the mounted account, client authority, and handoff. Reads abort and images lose their source on scope changes, close, or expiry. Actions require the displayed image to finish loading and include its exact version. An uncertain receipt hides controls until a fresh read; no action is automatically replayed. An acknowledged resume clears the image even if the connection refresh fails. Frame URLs come from the SDK query/fragment-free schema, and private browser nodes use the existing sensitive-element marker.

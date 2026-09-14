@@ -20,6 +20,7 @@ import {
 import {
   closeOcrEngines,
   ocrImage,
+  ocrImageRegion,
   resetTesseractProbe,
 } from "./mvp-visual-verify/ocr.mjs";
 import { runOcrTriage } from "./ocr-triage";
@@ -72,6 +73,44 @@ afterAll(async () => {
 });
 
 describe("real OCR blank-vs-unreadable classification", () => {
+  it.each(["visible", "covered", "absent"])(
+    "reads only the actual pixels of a %s two-line control",
+    async (state) => {
+      const rectangle = { left: 40, top: 20, width: 159, height: 40 };
+      const image = await sharp(
+        Buffer.from(`
+          <svg width="260" height="120" xmlns="http://www.w3.org/2000/svg">
+            <rect width="260" height="120" fill="#87451f" />
+            <rect x="40" y="20" width="159" height="40" rx="20" fill="#593018" />
+            <text x="119" y="36" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="600" fill="white">${state === "absent" ? "Misty Forest" : "Desert Dusk"}</text>
+            <text x="119" y="50" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#ded2c9">warm</text>
+            ${state === "covered" ? '<rect x="40" y="20" width="159" height="21" fill="#593018" />' : ""}
+            <text x="40" y="105" font-family="Arial, sans-serif" font-size="18" fill="white">Desert Dusk</text>
+          </svg>
+        `),
+      )
+        .png()
+        .toBuffer();
+      const result = await ocrImageRegion(image, rectangle);
+      const finding = evaluateOcrContent({
+        ocr: {
+          ...result,
+          lines: result.text.split("\n").filter(Boolean),
+        },
+        expectation: { requireAll: ["Desert Dusk"] },
+      });
+      if (state === "visible") {
+        expect(result.text).toContain("Desert Dusk");
+        expect(result.meanConfidence).toBeGreaterThanOrEqual(0.45);
+        expect(finding.missingRequired).toEqual([]);
+      } else {
+        expect(result.text).not.toContain("Desert Dusk");
+        expect(finding.verdict).not.toBe("verified");
+      }
+    },
+    90_000,
+  );
+
   it.each(["dark", "light"])(
     "preserves muted labels on a %s interface without inventing missing content",
     async (theme) => {
@@ -139,7 +178,7 @@ describe("real OCR blank-vs-unreadable classification", () => {
     expect(retried.text).toMatch(/Desert Dusk/i);
   }, 90_000);
 
-  it("does not call a populated mobile launcher blank when the first OCR pass is weak", async () => {
+  it("keeps historical launcher pixels nonblank while enforcing the current route content contract", async () => {
     const auditDir = join(dir, "launcher-audit");
     const viewportDir = join(auditDir, "mobile-portrait");
     mkdirSync(viewportDir, { recursive: true });
@@ -181,8 +220,11 @@ describe("real OCR blank-vs-unreadable classification", () => {
       true,
     );
     expect(entry.pixelBlank).toBe(false);
-    expect(entry.ocrVerdict).toBe("needs-eyeball");
-    expect(entry.regression).toBe(false);
+    // The historical launcher is readable, but the retired route now requires
+    // the unavailable-view screen. Readable pixels do not satisfy that contract.
+    expect(entry.ocrVerdict).toBe("broken");
+    expect(entry.regression).toBe(true);
+    expect(entry.reasons.join(" ")).toMatch(/missing expected content/i);
     expect(entry.reasons.join(" ")).not.toMatch(/pixels are blank/i);
   }, 90_000);
 

@@ -119,7 +119,7 @@ export type TelegramSenderAuth = ConnectorSenderAuth & {
 export interface TelegramCommandDescriptor {
   /** Sanitized Telegram command name (without the leading slash). */
   name: string;
-  /** Description, validated against Telegram's 256-character limit. */
+  /** Menu-only preview within Telegram's 256-character limit. */
   description: string;
   /** The originating catalog command. */
   command: ConnectorCommand;
@@ -148,29 +148,26 @@ function sanitizeCommandName(name: string): string | null {
   return TELEGRAM_COMMAND_NAME_RE.test(sanitized) ? sanitized : null;
 }
 
-/** Validate required command metadata before it reaches the Bot API boundary. */
-function requireDescription(description: string, commandName: string): string {
+/** Build a menu preview while the originating command retains its full text. */
+function commandDescriptionPreview(description: string): string {
   const wellFormed = toWellFormedUnicode(description.trim());
-  if (wellFormed.length > TELEGRAM_COMMAND_DESCRIPTION_MAX) {
-    throw new ElizaError(
-      `Telegram command /${commandName} description exceeds the Bot API limit`,
-      {
-        code: "TELEGRAM_COMMAND_DESCRIPTION_TOO_LONG",
-        context: {
-          commandName,
-          actualLength: wellFormed.length,
-          maxLength: TELEGRAM_COMMAND_DESCRIPTION_MAX,
-        },
-      },
-    );
+  if (wellFormed.length <= TELEGRAM_COMMAND_DESCRIPTION_MAX) return wellFormed;
+  let preview = "";
+  for (const codePoint of wellFormed) {
+    if (
+      preview.length + codePoint.length >
+      TELEGRAM_COMMAND_DESCRIPTION_MAX - 1
+    )
+      break;
+    preview += codePoint;
   }
-  return wellFormed;
+  return `${preview}…`;
 }
 
 /**
  * Project the catalog onto Telegram command descriptors, deduped by sanitized
- * name (first occurrence wins). Invalid provider metadata is rejected rather
- * than silently shortened or omitted.
+ * name (first occurrence wins). Only the menu description is a preview; the
+ * original command remains complete for dispatch and model-facing consumers.
  */
 export function buildTelegramCommandDescriptors(
   agentId?: string | null,
@@ -189,7 +186,7 @@ export function buildTelegramCommandDescriptors(
         },
       );
     }
-    const description = requireDescription(command.description, name);
+    const description = commandDescriptionPreview(command.description);
     if (!description) continue;
     seen.add(name);
     out.push({ name, description, command });

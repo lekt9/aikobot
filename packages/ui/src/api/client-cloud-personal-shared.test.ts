@@ -2726,6 +2726,33 @@ describe("personal Eliza runtime repoint", () => {
     sessionStorage.clear();
   });
 
+  it("keeps a bound credential request on its original authority after cutover", async () => {
+    const calls: string[] = [];
+    const client = new ElizaClient(sharedBase, "steward-token");
+    client.setRequestTransport({
+      request: async (url) => {
+        calls.push(String(url));
+        return jsonResponse(409, {
+          code: "personal_eliza_dedicated",
+          error: "This personal Eliza is active on Dedicated.",
+        });
+      },
+    });
+    const response = await client.rawRequest(
+      "/access/accounts/work/credentials/pending",
+      { method: "POST", body: JSON.stringify({ password: "fixture-secret" }) },
+      {
+        allowNonOk: true,
+        boundAuthorityRevision: client.getAuthorityRevision(),
+      },
+    );
+    expect(response.status).toBe(409);
+    expect(calls).toEqual([
+      `${sharedBase}/access/accounts/work/credentials/pending`,
+    ]);
+    expect(client.getBaseUrl()).toBe(sharedBase);
+  });
+
   it("repoints an open Shared client and retries the rejected turn once", async () => {
     const requestBodies: string[] = [];
     const fetchMock = vi.fn(

@@ -183,8 +183,8 @@ describe("buildTelegramCommandDescriptors", () => {
     expect(commands.some((c) => c.target.kind === "navigate")).toBe(true);
   });
 
-  it("rejects an over-limit command description instead of publishing a shortened one", () => {
-    const longDescription = "a".repeat(257);
+  it("registers long skill descriptions with a menu preview and preserves the complete command", () => {
+    const longDescription = `${"a".repeat(254)}😀 Full skill instructions remain available.`;
     pluginCommandsMock.getConnectorCommands.mockReturnValueOnce([
       {
         name: "long_description",
@@ -192,11 +192,11 @@ describe("buildTelegramCommandDescriptors", () => {
         target: { kind: "agent" },
       },
     ]);
-    expect(() => buildTelegramCommandDescriptors()).toThrow(
-      expect.objectContaining({
-        code: "TELEGRAM_COMMAND_DESCRIPTION_TOO_LONG",
-      }),
-    );
+    const [descriptor] = buildTelegramCommandDescriptors();
+    expect(descriptor.description).toBe(`${"a".repeat(254)}…`);
+    expect(descriptor.description.length).toBeLessThanOrEqual(256);
+    expect(descriptor.description).not.toMatch(/[\uD800-\uDFFF]/u);
+    expect(descriptor.command.description).toBe(longDescription);
   });
 });
 

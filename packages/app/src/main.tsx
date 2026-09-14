@@ -39,6 +39,7 @@ import "@elizaos/plugin-relationships/register";
 // self-contained NativeAppsStudio. No-op on web, where CloudRouterShell serves
 // the same surfaces.
 import "./cloud-apps-view";
+import "./access-apps-view";
 // Surfaces the renderer build stamp on window.__ELIZA_RENDERER_BUILD__ so the
 // running build's identity is observable in-app and assertable on-device (#9309).
 import "./renderer-build-stamp";
@@ -3563,7 +3564,18 @@ async function main(): Promise<void> {
   // iframe, exchange the platform's signed launch payload for a scoped session
   // token and install it on the ElizaClient BEFORE any authenticated agent API
   // call is made. No-op (and never throws) off the /embed route.
-  await runEmbedHandshake({ client });
+  const embedAuthentication = await runEmbedHandshake({ client });
+  if (window.location.pathname === "/embed/apps") {
+    const { AccessEmbedApp } = await import("./access-mini-app");
+    const root = document.getElementById("root");
+    if (!root) throw new Error("Access Mini App mount is missing");
+    ReactDomClient.createRoot(root).render(
+      <StrictMode>
+        <AccessEmbedApp authentication={embedAuthentication} />
+      </StrictMode>,
+    );
+    return;
+  }
 
   // The headless device gate owns the WebView when requested, so resolve it
   // before route/plugin initialization can add unrelated work or early exits.

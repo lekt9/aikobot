@@ -2,6 +2,7 @@
  * Scheduling package barrel exports the runner spine, routes, dispatch policy,
  * plugin object, and anchor registry helpers for hosts.
  */
+
 export {
   __resetAnchorRegistryForTests,
   APP_LIFEOPS_ANCHORS,
@@ -44,6 +45,15 @@ export {
   SCHEDULED_TASKS_ROUTE_PATHS,
   type SchedulingRouteContext,
 } from "./routes/scheduled-tasks.ts";
+export {
+  bindScheduledTaskToInboundChat,
+  bindScheduledTaskToOwnerChat,
+  isInternalMessageSource,
+  readScheduledTaskChatDeliveryBinding,
+  revalidateScheduledTaskChatDeliveryBinding,
+  SCHEDULED_TASK_DELIVERY_BINDING_KEY,
+  type ScheduledTaskChatDeliveryBinding,
+} from "./scheduled-task/delivery-binding.ts";
 export * from "./scheduled-task/index.ts";
 export {
   SHARED_CUTOVER_GATEWAY_CHANNEL,

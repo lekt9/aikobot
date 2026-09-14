@@ -15,3 +15,15 @@ atomic fire claim also checks the metadata observed by admission; a concurrent
 metadata change returns `raced` so the next attempt obtains fresh admission. Task
 creation and editing are separate persistence operations and are not covered by
 this execution boundary.
+
+The package also owns canonical chat delivery bindings. Authenticated app
+requests can use `bindScheduledTaskToOwnerChat` to resolve an existing private
+Telegram room; ambiguous or foreign rooms have no binding. Connector dispatch
+revalidates the stored binding against current room membership and bot account
+immediately before delivery. Personal-assistant's existing delivery-binding
+module re-exports this implementation.
+
+When a gate defers an event, the runner persists the complete event payload in
+its existing dispatch continuation. The scheduled wake retains that evidence
+across restart and creates a dispatch identity before first delivery. Connector
+retry continuations retain their original identity, step, and attempt count.

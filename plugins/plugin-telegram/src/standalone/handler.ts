@@ -17,6 +17,7 @@ import {
 } from "@elizaos/core";
 import { checkTelegramDmAccess, resolveTelegramDmPolicy } from "../dm-policy";
 import { resolveTelegramRuntimeEntityId } from "../identity";
+import { emitTelegramUserActivity } from "../user-activity";
 
 function formatError(err: unknown): string {
   return err instanceof Error ? err.message : String(err);
@@ -158,6 +159,7 @@ export async function handleTelegramStandaloneMessage(
     const username =
       from?.username ?? from?.first_name ?? `telegram-${telegramUserId}`;
     const accountId = "default";
+    await emitTelegramUserActivity(runtime, accountId, from, chat.type);
     const threadId =
       message.message_thread_id !== undefined
         ? String(message.message_thread_id)

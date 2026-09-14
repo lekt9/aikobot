@@ -3710,6 +3710,12 @@ export const INVALID_TRACER_PROVIDER = {};
       credentials: true,
     },
     proxy: {
+      "/access": {
+        target: `http://127.0.0.1:${apiPort}`,
+        changeOrigin: false,
+        xfwd: true,
+        configure: configureDevApiProxy,
+      },
       ...(localVoiceGatewayPort
         ? {
             "/api/v1/voice": {
@@ -3768,10 +3774,25 @@ export const INVALID_TRACER_PROVIDER = {};
       },
     },
     fs: {
+      // Preserve Vite's default protections and block package symlink aliases;
+      // the browser resolves Access imports to the canonical source paths below.
+      deny: [
+        ".env",
+        ".env.*",
+        "*.{crt,pem,key,p12,pfx,cer,der}",
+        ".npmrc",
+        ".yarnrc.yml",
+        "**/.git/**",
+        "**/node_modules/access/**",
+      ],
       // Allow serving files from the app directory and eliza src
       allow: [
         here,
         elizaRoot,
+        // Access client contracts share one browser-safe credential schema.
+        // Keep sibling vault, environment and runtime state outside this boundary.
+        path.resolve(elizaRoot, "../access/src/client"),
+        path.resolve(elizaRoot, "../access/src/ui/schema.ts"),
         ...(fs.existsSync(bunLinkedPackageCacheRoot)
           ? [bunLinkedPackageCacheRoot]
           : []),

@@ -1,12 +1,12 @@
 /**
- * Embedded-app launch bootstrap (#9947).
+ * Authenticates embedded launches before the application mounts.
  *
  * When the SPA is served at `/embed` inside a Telegram Mini App or Discord
  * Activity iframe, the first-party Steward session cookie does not cross into
  * the third-party origin, so the app cannot authenticate the normal way. This
  * runs the client half of the embed-launch handshake before the app mounts:
  *
- *   1. Read the platform's signed launch payload (Telegram `initData` from the
+ *   1. Load the Telegram SDK on the Apps embed, then read the signed launch payload (`initData` from the
  *      WebApp SDK; the Discord Activity OAuth2 `code` from the query string).
  *   2. POST it to the agent's `POST /api/embed/auth`, which verifies it
  *      server-side (`verifyEmbedLaunch`) and mints a scoped session token for
@@ -15,11 +15,20 @@
  *      subsequent agent API call carries it as a bearer — the credential the
  *      auth boundary now accepts (see app-core embed-session-token wiring).
  *
+ * Authentication succeeds only when the exchange keeps the same client authority
+ * and the returned token is installed exactly; a retained prior session never
+ * authenticates this launch.
+ *
  * The handshake is dependency-injected (window / fetch / client) so it is unit
  * testable without the iframe runtime or the ElizaClient singleton. It never
  * throws: a failure returns a `failed` outcome and the app still mounts (in its
  * unauthenticated state) rather than white-screening.
  */
+import {
+  ensureTelegramWebApp,
+  isTelegramAppsEmbed,
+  telegramWebApp,
+} from "./telegram-webapp.js";
 
 export type EmbedPlatform = "telegram" | "discord";
 
@@ -31,20 +40,20 @@ export type EmbedAuthOutcome =
 /** The subset of the ElizaClient this bootstrap needs. */
 export interface EmbedClient {
   getBaseUrl(): string;
+  getRestAuthToken(): string | null;
+  getAuthorityRevision(): number;
   setToken(token: string | null): void;
-}
-
-interface TelegramWebApp {
-  initData?: string;
-  ready?: () => void;
-  expand?: () => void;
 }
 
 interface EmbedHandshakeDeps {
   win?: Window;
-  fetchImpl?: typeof fetch;
+  fetchImpl?: (
+    input: RequestInfo | URL,
+    init?: RequestInit,
+  ) => Promise<Response>;
   client?: EmbedClient;
   timeoutMs?: number;
+  telegramSdkTimeoutMs?: number;
 }
 
 const DEFAULT_EMBED_AUTH_TIMEOUT_MS = 10_000;
@@ -54,19 +63,18 @@ export function isEmbedPath(pathname: string): boolean {
 }
 
 function telegramInitData(win: Window): string | null {
-  const telegram = (win as Window & { Telegram?: { WebApp?: TelegramWebApp } })
-    .Telegram?.WebApp;
-  // The Mini App SDK wants `ready()` called once the app is prepared to be
-  // shown; it is also what makes `initData` reliably available.
-  telegram?.ready?.();
-  const initData = telegram?.initData?.trim();
-  return initData ? initData : null;
+  const telegram = telegramWebApp(win);
+  // Legacy embeds retain their readiness signal. The Apps embed signals it
+  // after mounting its content; ready() does not populate signed launch data.
+  if (!isTelegramAppsEmbed(win)) telegram?.ready?.();
+  const initData = telegram?.initData;
+  return initData?.trim() ? initData : null;
 }
 
 /**
  * Detect the launch platform. The connector launch surfaces link to a bare
  * `/embed` URL (no `?platform=`), so infer it from the runtime signals:
- * a Telegram Mini App injects `Telegram.WebApp.initData`; a Discord Activity
+ * the loaded Telegram SDK exposes `Telegram.WebApp.initData`; a Discord Activity
  * OAuth redirect lands with a `?code`. An explicit `?platform=` overrides both
  * (useful for testing / non-standard launchers).
  */
@@ -114,6 +122,10 @@ export async function runEmbedHandshake(
   }
 
   const params = new URLSearchParams(win.location.search);
+  if (isTelegramAppsEmbed(win)) {
+    const sdk = await ensureTelegramWebApp(win, deps.telegramSdkTimeoutMs);
+    if (sdk.status === "failed") return sdk;
+  }
   const platform = detectPlatform(params, win);
   if (!platform) {
     return { status: "failed", reason: "unknown_platform" };
@@ -136,6 +148,7 @@ export async function runEmbedHandshake(
   const fetchImpl = deps.fetchImpl ?? fetch;
   const accountId = params.get("accountId") ?? undefined;
   const base = embedClient.getBaseUrl().replace(/\/+$/, "");
+  const authority = embedClient.getAuthorityRevision();
   const timeoutMs = deps.timeoutMs ?? DEFAULT_EMBED_AUTH_TIMEOUT_MS;
 
   let response: Response;
@@ -146,6 +159,8 @@ export async function runEmbedHandshake(
     const authRequest = fetchImpl(`${base}/api/embed/auth`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      redirect: "error",
+      cache: "no-store",
       signal: abortController?.signal,
       body: JSON.stringify({
         platform,
@@ -188,7 +203,24 @@ export async function runEmbedHandshake(
     return { status: "failed", reason: "no_token" };
   }
 
-  embedClient.setToken(body.token);
+  if (
+    embedClient.getBaseUrl().replace(/\/+$/, "") !== base ||
+    embedClient.getAuthorityRevision() !== authority
+  ) {
+    return { status: "failed", reason: "authority_changed" };
+  }
+  try {
+    embedClient.setToken(body.token);
+  } catch {
+    // error-policy:J1 token installation failures never authorize an older session.
+    return { status: "failed", reason: "token_install_failed" };
+  }
+  if (embedClient.getBaseUrl().replace(/\/+$/, "") !== base) {
+    return { status: "failed", reason: "authority_changed" };
+  }
+  if (embedClient.getRestAuthToken() !== body.token) {
+    return { status: "failed", reason: "token_not_installed" };
+  }
   return {
     status: "authenticated",
     role: typeof body.role === "string" ? body.role : "ADMIN",

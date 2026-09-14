@@ -11,7 +11,9 @@ Telegram connector for elizaOS. Gives an Eliza agent the ability to send and rec
 - Supports outgoing buttons (`login` and `url` kinds) via the `TelegramContent.buttons` field.
 - Provides HTTP setup routes for bot-token configuration and GramJS user-account login.
 - Supports multiple bot accounts per agent via `character.settings.telegram.accounts`.
+- Emits `TELEGRAM_USER_ACTIVITY` for human private-message senders before the chat access gate, including `/start`. The identity-only payload contains the connector-resolved entity ID and bot account ID. With `@elizaos/plugin-access` loaded, this creates or reuses the person's private Access workspace without a separate signup; it does not grant chat or administrator access.
 - Preserves complete outbound text across Telegram's field limits: long messages are split losslessly, and media captions over 1024 UTF-16 units are delivered as follow-up text instead of clipped.
+- Long command descriptions use an explicitly abbreviated menu preview so bundled skills cannot prevent bot startup. The originating catalog command retains its complete description for dispatch and model context.
 
 ## Prerequisites
 

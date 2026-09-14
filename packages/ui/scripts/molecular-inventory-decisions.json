@@ -14,13 +14,14 @@
     },
     "dialog:button+dialog": {
       "disposition": "distinct-domain-compositions",
-      "rationale": "The three dialogs own unrelated editing, confirmation, and calendar workflows.",
+      "rationale": "Skill editing, generic confirmation, calendar editing, and the Access account drawer own different pending, validation, and completion contracts. The Access drawer selects an account, reads remote connection projections, and contains private credential and permission steps; it cannot share an editing or confirmation lifecycle. All four reuse the canonical Dialog and Button primitives.",
       "memberComponentIds": [
+        "packages/ui/src/components/access/apps-drawer.tsx:AppsDrawer",
         "packages/ui/src/components/pages/skill-detail-panel.tsx:EditSkillModal",
         "packages/ui/src/components/ui/confirm-dialog.tsx:ConfirmDialog",
         "plugins/plugin-calendar/src/components/EventEditorDrawer.tsx:EventEditorDrawer"
       ],
-      "semanticFingerprint": "sha256:7d8e1352a677365c5ff593aa06cecc62fb6ad5b2b4b7f2d6aa195a563c33c0db"
+      "semanticFingerprint": "sha256:ab87fba72eb4590ed399831949a76661358a5f10f8d365737fcfaac50864ecc5"
     },
     "dialog:button+dialog+input": {
       "disposition": "distinct-domain-compositions",
@@ -81,13 +82,14 @@
     },
     "form:button+input": {
       "disposition": "distinct-domain-compositions",
-      "rationale": "Trigger configuration, tag editing and login share generic controls but not a domain lifecycle. Login performs provider discovery, credential challenges and session handoff; trigger configuration edits scheduling state; tag editing emits a list of strings. Each composes the canonical Button and Input primitives.",
+      "rationale": "Trigger configuration edits scheduling state, tag editing emits strings, and application login discovers providers and creates the app session. The Access credential form instead validates a generated website-specific schema, binds vault references to the selected account, expires transient inputs, and submits privately before native task continuation. These lifecycles remain distinct while reusing the canonical Button and Input primitives.",
       "memberComponentIds": [
+        "packages/ui/src/components/access/credential-form.tsx:CredentialForm",
         "packages/ui/src/components/pages/TriggerForm.tsx:TriggerForm",
         "packages/ui/src/components/ui/tag-editor.tsx:TagEditor",
         "packages/ui/src/login/components/LoginForm.tsx:LoginForm"
       ],
-      "semanticFingerprint": "sha256:fcf873875a506f36121cec3f220e955971468c53d28e938874b7b2890cdeccf6"
+      "semanticFingerprint": "sha256:092912c5cc6d260ffb16e600089f0042a043651796150a0e3a8f520f8ac72573"
     },
     "panel:button+input": {
       "disposition": "distinct-domain-compositions",

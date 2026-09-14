@@ -15,6 +15,13 @@ OpenAI model-provider plugin for [elizaOS](https://github.com/elizaos/eliza). Ad
 
 Works with any OpenAI-compatible endpoint: OpenAI, Cerebras, EvoLink, OpenRouter, local servers, etc.
 
+For Codegraff's `https://gateway.codegraff.com/v1` endpoint with the exact
+`deepseek-flash` model, structured calls that request thinking off send
+`reasoning_effort: "none"`. This preserves required tool calls, which that model
+rejects while thinking is enabled. Set `OPENAI_REASONING_EFFORT: "none"` in
+the agent's runtime settings to apply the same mode to planner calls. The
+compatibility rule does not change other endpoints or model IDs.
+
 ## Enabling the plugin
 
 Add `@elizaos/plugin-openai` to your character's plugin list:

@@ -80,6 +80,7 @@ import {
   TelegramEventTypes,
   type TelegramWorldPayload,
 } from "./types";
+import { emitTelegramUserActivity } from "./user-activity";
 import { buildTelegramWorldOwnership } from "./world-ownership";
 
 const CANONICAL_OWNER_SETTING_KEYS = ["ELIZA_ADMIN_ENTITY_ID"] as const;
@@ -1325,6 +1326,14 @@ export class TelegramService extends Service {
     next: MiddlewareNext,
     accountId = this.defaultAccountId,
   ): Promise<void> {
+    if (ctx.message) {
+      await emitTelegramUserActivity(
+        this.runtime,
+        accountId,
+        ctx.from,
+        ctx.chat?.type,
+      );
+    }
     const access = await this.checkChatAccess(ctx, accountId);
     if (!access.allowed) {
       // Skip further processing if chat is not authorized
